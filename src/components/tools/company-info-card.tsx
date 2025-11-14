@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CompanyInfo } from "@/types";
+import { cn } from "@/lib/utils";
 
 const statusMeta: Record<CompanyInfo["status"], { label: string; variant: "default" | "secondary" | "destructive"; }> = {
   active: { label: "在业", variant: "default" },
@@ -17,13 +18,14 @@ interface CompanyInfoCardProps {
   company: CompanyInfo;
   onGenerateReport?: () => void;
   isGeneratingReport?: boolean;
+  className?: string;
 }
 
-export function CompanyInfoCard({ company, onGenerateReport, isGeneratingReport }: CompanyInfoCardProps) {
+export function CompanyInfoCard({ company, onGenerateReport, isGeneratingReport, className }: CompanyInfoCardProps) {
   const status = statusMeta[company.status];
 
   return (
-    <Card>
+    <Card className={cn(className)}>
       <CardHeader className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

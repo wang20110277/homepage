@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/auth/user-profile";
-import { ModeToggle } from "./ui/mode-toggle";
 import { LayoutDashboard, Presentation, ScanText, Building2, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -85,7 +84,6 @@ export function SiteHeader() {
         {/* Right Section */}
         <div className="flex items-center gap-2">
           <UserProfile />
-          <ModeToggle />
 
           {/* Mobile Menu */}
           <Sheet>

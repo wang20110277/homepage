@@ -121,9 +121,9 @@ export interface DueDiligenceReport {
   riskLevel: "low" | "medium" | "high";
   sections: {
     basicInfo: boolean;
-    businessInfo: boolean;
-    shareholders: boolean;
-    changeHistory: boolean;
-    riskAnalysis: boolean;
+    financialInfo: boolean;
+    shareholding: boolean;
+    litigation: boolean;
+    personnel: boolean;
   };
 }

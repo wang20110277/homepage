@@ -6,7 +6,7 @@ export function SiteFooter() {
   const pathname = usePathname();
 
   // Hide footer on login and home pages
-  if (pathname === "/" || pathname === "/home") {
+  if (pathname === "/" || pathname === "/home" || pathname.startsWith("/tools/tianyancha")) {
     return null;
   }
 

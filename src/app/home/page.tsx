@@ -8,17 +8,13 @@ import {
   Building2,
   CheckCircle2,
 } from "lucide-react";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { CometCard } from "@/components/ui/comet-card";
 
 export default function LegacyHome() {
   return (
-    <main className="relative min-h-screen bg-neutral-950 overflow-hidden flex items-center justify-center">
-      {/* Background Beams */}
-      <BackgroundBeams />
-
+    <main className="relative min-h-screen flex items-center justify-center px-4 py-12">
       {/* Features Section */}
-      <section className="relative z-10 container mx-auto px-4 w-full">
+      <section className="w-full">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white">核心功能</h2>
 

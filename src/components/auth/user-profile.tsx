@@ -47,8 +47,11 @@ export function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} variant="destructive">
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="text-sm font-semibold text-primary focus:bg-primary/10 focus:text-primary hover:bg-primary/10"
+        >
+          <LogOut className="mr-2 h-4 w-4 text-primary" />
           退出登录
         </DropdownMenuItem>
       </DropdownMenuContent>

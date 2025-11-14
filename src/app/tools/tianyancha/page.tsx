@@ -1,16 +1,17 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Search, Sparkles, Building2, FileText } from "lucide-react";
+import { Loader2, Search, Sparkles, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { mockCompanyData } from "@/lib/mock-data";
 import type { CompanyInfo, DueDiligenceReport } from "@/types";
@@ -20,22 +21,52 @@ import { CompanyShareholders } from "@/components/tools/company-shareholders";
 import { CompanyChanges } from "@/components/tools/company-changes";
 import { CompanyBusinessScope } from "@/components/tools/company-business-scope";
 
+const queryOptions = [
+  { id: "basicInfo", label: "企业基本信息" },
+  { id: "financialInfo", label: "财务信息" },
+  { id: "shareholding", label: "股权结构" },
+  { id: "litigation", label: "诉讼信息" },
+  { id: "personnel", label: "人员相关" },
+] as const;
+
+type QueryOptionId = (typeof queryOptions)[number]["id"];
+type QuerySelection = Record<QueryOptionId, boolean>;
+type ReportVariant = "tech" | "channel";
+
+const reportVariantLabels: Record<ReportVariant, string> = {
+  tech: "信息科技管理尽调报告",
+  channel: "渠道准入尽调报告",
+};
+
 const reportSectionLabels: Record<keyof DueDiligenceReport["sections"], string> = {
-  basicInfo: "基本信息",
-  businessInfo: "工商信息",
-  shareholders: "股东信息",
-  changeHistory: "变更记录",
-  riskAnalysis: "风险分析",
+  basicInfo: "企业基本信息",
+  financialInfo: "财务信息",
+  shareholding: "股权结构",
+  litigation: "诉讼信息",
+  personnel: "人员相关",
+};
+
+const companyStatusLabels: Record<CompanyInfo["status"], string> = {
+  active: "存续",
+  cancelled: "已注销",
+  revoked: "已吊销",
 };
 
 export default function TianyanchaToolPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState<QuerySelection>(() =>
+    queryOptions.reduce((acc, option) => {
+      acc[option.id] = true;
+      return acc;
+    }, {} as QuerySelection),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<CompanyInfo | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [report, setReport] = useState<DueDiligenceReport | null>(null);
+  const [currentReportType, setCurrentReportType] = useState<string | null>(null);
 
   const suggestions = useMemo(() => Object.keys(mockCompanyData), []);
 
@@ -53,154 +84,249 @@ export default function TianyanchaToolPage() {
     return match ? match[1] : null;
   };
 
-  const handleSearch = (event?: React.FormEvent) => {
-    event?.preventDefault();
-    if (!searchQuery.trim()) {
-      setError("请输入企业名称");
-      toast.error("请输入企业名称后再查询");
-      return;
-    }
-
+  const runSearch = (term: string) => {
     setIsLoading(true);
     setError(null);
     setCompany(null);
+    setReport(null);
+    setReportDialogOpen(false);
+    setCurrentReportType(null);
 
     setTimeout(() => {
-      const result = lookupCompany(searchQuery);
+      const result = lookupCompany(term);
       setIsLoading(false);
       if (!result) {
-        setError("未找到匹配的企业信息，可尝试输入全称或统一信用代码");
-        toast.warning("暂无匹配的企业");
+        setError("未找到匹配的企业，请尝试其他关键词");
+        toast.warning("没有匹配的企业");
         return;
       }
       setCompany(result);
-      toast.success("查询成功，已加载企业档案");
+      toast.success("查询成功，已匹配企业信息");
     }, 1200);
   };
 
-  const buildReport = (currentCompany: CompanyInfo): DueDiligenceReport => {
+  const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!searchQuery.trim()) {
+      setError("请输入要查询的企业名称");
+      setCompany(null);
+      toast.error("请输入要查询的企业名称");
+      return;
+    }
+    runSearch(searchQuery.trim());
+  };
+
+  const handleSuggestionClick = (value: string) => {
+    setSearchQuery(value);
+    runSearch(value.trim());
+  };
+
+  const handleSuggestionKeyDown = (event: KeyboardEvent<HTMLSpanElement>, value: string) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleSuggestionClick(value);
+    }
+  };
+
+  const handleOptionChange = (id: QueryOptionId, isChecked: boolean) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [id]: isChecked,
+    }));
+  };
+
+  const buildReport = (currentCompany: CompanyInfo, selections: QuerySelection): DueDiligenceReport => {
     const riskLevel = currentCompany.status === "active" ? "low" : "medium";
+    const statusLabel = companyStatusLabels[currentCompany.status];
+
     return {
       id: `report-${currentCompany.id}`,
       companyId: currentCompany.id,
       companyName: currentCompany.name,
       generatedAt: new Date().toISOString(),
-      summary: `${currentCompany.name} 尽调摘要：股权结构稳定，最近 ${currentCompany.changeRecords.length} 条变更已收录，推荐重点关注经营范围合规性与股东出资履约情况。`,
+      summary: `${currentCompany.name} 当前状态为${statusLabel}，共 ${currentCompany.changeRecords.length} 条历史变更，可结合所选模块快速完成尽调。`,
       riskLevel,
       sections: {
-        basicInfo: true,
-        businessInfo: true,
-        shareholders: true,
-        changeHistory: true,
-        riskAnalysis: true,
+        basicInfo: selections.basicInfo,
+        financialInfo: selections.financialInfo,
+        shareholding: selections.shareholding,
+        litigation: selections.litigation,
+        personnel: selections.personnel,
       },
     };
   };
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = (variant: ReportVariant) => {
     if (!company) {
-      toast.error("请先查询并选择企业");
+      toast.error("请先完成企业查询");
       return;
     }
+
+    const targetCompany = company;
+    const label = reportVariantLabels[variant];
+    const selectionsSnapshot = { ...selectedOptions };
+
     setIsGeneratingReport(true);
-    const toastId = toast.loading("正在生成尽调报告...");
+    setCurrentReportType(label);
+    const toastId = toast.loading(`正在生成${label}...`);
 
     setTimeout(() => {
-      const nextReport = buildReport(company);
+      const nextReport = buildReport(targetCompany, selectionsSnapshot);
       setReport(nextReport);
       setIsGeneratingReport(false);
       setReportDialogOpen(true);
       toast.dismiss(toastId);
-      toast.success("报告生成完成");
+      toast.success(`${label}生成成功`);
     }, 3000);
   };
 
   const handleDownload = () => {
-    toast.info("模拟下载：报告已准备好 PDF 文件");
+    toast.info("提示：当前示例仅支持预览，暂不提供 PDF 下载能力");
+  };
+
+  const handleReportDialogChange = (open: boolean) => {
+    setReportDialogOpen(open);
+    if (!open) {
+      setCurrentReportType(null);
+    }
   };
 
   return (
-    <div className="container py-10 space-y-8">
-      <header className="space-y-3">
-        <Badge variant="secondary" className="w-fit gap-2">
-          <Building2 className="h-4 w-4" /> 企业信息查询
-        </Badge>
-        <h1 className="text-3xl font-bold tracking-tight">智能企业尽调工作台</h1>
-        <p className="max-w-3xl text-muted-foreground">
-          结合工商数据、股权结构与变更记录，快速完成企业尽调。输入企业名称即可查询，并支持一键生成尽调报告。
+    <main className="mx-auto flex w-full max-w-7xl flex-col space-y-10 px-6 py-10 md:px-8">
+      <header className="space-y-3 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">天眼查企业查询工作台</h1>
+        <p className="text-sm text-muted-foreground md:text-base">
+          左侧填写企业名称并勾选所需模块，右侧实时展示查询结果，便于一键生成尽调报告。
         </p>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          {["工商档案", "股权结构", "变更记录", "经营范围"].map((feature) => (
-            <span key={feature} className="inline-flex items-center gap-1 rounded-full border px-3 py-1">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              {feature}
-            </span>
-          ))}
-        </div>
       </header>
 
-      <Card>
-        <CardContent className="space-y-6 p-6">
-          <form className="flex flex-col gap-4 md:flex-row" onSubmit={handleSearch}>
-            <div className="flex-1">
-              <Label htmlFor="company">企业名称</Label>
-              <Input
-                id="company"
-                placeholder="请输入企业名称"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
+      <section className="grid gap-6 lg:grid-cols-[5fr_6fr]">
+        <Card className="min-h-[520px]">
+          <CardContent className="flex h-full flex-col gap-6 p-6">
+            <form className="space-y-5" onSubmit={handleSearch}>
+              <div className="space-y-2">
+                <Label htmlFor="companyName" className="text-base font-medium">
+                  企业名称
+                </Label>
+                <div className="grid gap-3 md:grid-cols-[minmax(0,_1fr)_auto]">
+                  <Input
+                    id="companyName"
+                    placeholder="请输入需要查询的企业全称或统一社会信用代码"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    className="w-full"
+                  />
+                  <Button type="submit" className="w-full md:w-auto" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                    查询
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-base font-medium">查询信息类别</Label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {queryOptions.map((option) => (
+                    <label
+                      key={option.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm hover:border-primary/60"
+                    >
+                      <Checkbox
+                        checked={selectedOptions[option.id]}
+                        onCheckedChange={(checked) => handleOptionChange(option.id, checked === true)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </form>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>常用示例：</span>
+              {suggestions.map((item) => (
+                <Badge
+                  key={item}
+                  variant="outline"
+                  role="button"
+                  tabIndex={0}
+                  className="cursor-pointer"
+                  onClick={() => handleSuggestionClick(item)}
+                  onKeyDown={(event) => handleSuggestionKeyDown(event, item)}
+                >
+                  {item}
+                </Badge>
+              ))}
             </div>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full md:w-auto" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                查询
-              </Button>
-            </div>
-          </form>
-
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span>示例：</span>
-            {suggestions.map((item) => (
-              <Badge key={item} variant="outline" className="cursor-pointer" onClick={() => setSearchQuery(item)}>
-                {item}
-              </Badge>
-            ))}
-          </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertTitle>查询失败</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {isLoading && (
-        <Card className="border-dashed">
-          <CardContent className="flex items-center justify-center gap-3 py-10 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            正在拉取工商数据...
           </CardContent>
         </Card>
-      )}
 
-      {!isLoading && !company && !error && (
-        <EmptyState />
-      )}
+        <div className="space-y-4">
+          {isLoading ? (
+            <Card className="min-h-[460px] border-dashed">
+              <CardContent className="flex h-full items-center justify-center gap-3 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                正在查询，请稍候...
+              </CardContent>
+            </Card>
+          ) : company ? (
+            <CompanyInfoCard company={company} className="min-h-[460px]" />
+          ) : (
+            <Card className="min-h-[460px]">
+              <CardContent className="flex h-full items-center justify-center p-6">
+                {error ? (
+                  <Alert variant="destructive" className="w-full max-w-md">
+                    <AlertTitle>查询失败</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                ) : (
+                  <ResultPlaceholder />
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button
+              type="button"
+              onClick={() => handleGenerateReport("tech")}
+              disabled={!company || isGeneratingReport}
+              className="justify-center"
+            >
+              {isGeneratingReport && currentReportType === reportVariantLabels.tech ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  正在生成...
+                </>
+              ) : (
+                "生成信息科技管理尽调报告"
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleGenerateReport("channel")}
+              disabled={!company || isGeneratingReport}
+              className="justify-center"
+            >
+              {isGeneratingReport && currentReportType === reportVariantLabels.channel ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  正在生成...
+                </>
+              ) : (
+                "生成渠道准入尽调报告"
+              )}
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {company && (
         <section className="space-y-6">
-          <CompanyInfoCard
-            company={company}
-            onGenerateReport={handleGenerateReport}
-            isGeneratingReport={isGeneratingReport}
-          />
-
           <Tabs defaultValue="business" className="space-y-4">
             <TabsList className="flex-wrap">
-              <TabsTrigger value="business">工商信息</TabsTrigger>
+              <TabsTrigger value="business">经营信息</TabsTrigger>
               <TabsTrigger value="shareholders">股东信息</TabsTrigger>
               <TabsTrigger value="changes">变更记录</TabsTrigger>
               <TabsTrigger value="scope">经营范围</TabsTrigger>
@@ -221,22 +347,23 @@ export default function TianyanchaToolPage() {
         </section>
       )}
 
-      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+      <Dialog open={reportDialogOpen} onOpenChange={handleReportDialogChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>尽调报告预览</DialogTitle>
-            <DialogDescription>以下为自动生成的报告摘要，可下载 PDF 版本。</DialogDescription>
+            <DialogTitle>尽调报告生成完成</DialogTitle>
+            <DialogDescription>所选模块已生成结构化内容，可继续完善后导出 PDF。</DialogDescription>
           </DialogHeader>
           {report ? (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">企业：{report.companyName}</p>
+                <p className="text-sm text-muted-foreground">报告类型：{currentReportType ?? "信息尽调报告"}</p>
+                <p className="text-sm text-muted-foreground">企业名称：{report.companyName}</p>
                 <p className="text-sm text-muted-foreground">生成时间：{new Date(report.generatedAt).toLocaleString()}</p>
               </div>
               <p className="leading-relaxed text-sm">{report.summary}</p>
               <Separator />
               <div className="space-y-2 text-sm">
-                <p className="font-medium">覆盖板块</p>
+                <p className="font-medium">包含模块</p>
                 <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
                   {Object.entries(report.sections)
                     .filter(([, enabled]) => enabled)
@@ -249,32 +376,28 @@ export default function TianyanchaToolPage() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">报告生成中...</p>
+            <p className="text-sm text-muted-foreground">正在整理报告内容...</p>
           )}
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setReportDialogOpen(false)}>
+            <Button variant="secondary" onClick={() => handleReportDialogChange(false)}>
               关闭
             </Button>
             <Button onClick={handleDownload}>
-              <FileText className="mr-2 h-4 w-4" /> 下载 PDF
+              <FileText className="mr-2 h-4 w-4" /> 导出 PDF
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   );
 }
 
-function EmptyState() {
+function ResultPlaceholder() {
   return (
-    <Card className="border-dashed">
-      <CardContent className="space-y-3 py-10 text-center">
-        <Sparkles className="mx-auto h-8 w-8 text-primary" />
-        <p className="text-lg font-medium">输入企业名称即可查看实时工商信息</p>
-        <p className="text-sm text-muted-foreground">
-          支持多行业、多地区主体，包含工商、股东、变更与经营范围等维度。
-        </p>
-      </CardContent>
-    </Card>
+    <div className="space-y-3 text-center text-sm text-muted-foreground">
+      <Sparkles className="mx-auto h-8 w-8 text-primary" />
+      <p className="text-base font-medium text-foreground">等待查询</p>
+      <p>输入企业名称并点击查询，即可在此处查看实时返回的企业信息。</p>
+    </div>
   );
 }

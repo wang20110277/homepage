@@ -1,36 +1,30 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
 import { ImageUpload } from "@/components/tools/image-upload";
 import { mockOCRResults } from "@/lib/mock-data";
 import type { OCRResult } from "@/types";
 import { toast } from "sonner";
 import {
   BadgeCheck,
-  Copy,
-  Layers,
+  Download,
   Loader2,
-  ScanText,
-  ShieldCheck,
   Sparkles,
-  Timer,
+  CheckCircle2,
+  Zap,
+  FileText,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const featureBadges = ["免费识别", "结构化输出", "多模型选择", "多格式支持"];
-
 const modeOptions = [
   { value: "normal", label: "普通识别", description: "快速提取图片文字" },
-  { value: "structured", label: "文档结构输出", description: "保持标题 / 列表结构" },
-  { value: "custom", label: "自定义模式", description: "对票据、表格等自定义模板" },
+  { value: "structured", label: "文档结构输出", description: "保留标题 / 列表结构" },
 ] as const;
 
 const modelOptions = [
@@ -38,20 +32,32 @@ const modelOptions = [
   { value: "small", label: "小型", description: "速度与准确平衡" },
   { value: "base", label: "基础", description: "通用场景" },
   { value: "large", label: "大型", description: "高精度复杂文本" },
-  { value: "recommended", label: "推荐", description: "由系统智能决策" },
 ] as const;
 
 type OCRMode = (typeof modeOptions)[number]["value"];
 type ModelSize = (typeof modelOptions)[number]["value"];
 
+const features = [
+  { icon: Zap, text: "极速识别响应，适合批量文件" },
+  { icon: FileText, text: "保留段落、列表等文档结构" },
+  { icon: Shield, text: "全程加密处理，保障隐私" },
+  { icon: CheckCircle2, text: "针对票据/表格做专项优化" },
+];
+
+const usageTips = [
+  "基础模型覆盖大多数场景，系统会自动裁剪噪声边缘",
+  "文档结构输出更适合长文档或带层级的资料",
+  "普通识别可快速提取短文本或截图内容",
+  "上传清晰、对比度高的图片有助于提升准确率",
+];
+
 export default function OCRToolPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mode, setMode] = useState<OCRMode>("normal");
-  const [modelSize, setModelSize] = useState<ModelSize>("recommended");
+  const [modelSize, setModelSize] = useState<ModelSize>("base");
   const [result, setResult] = useState<OCRResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("等待上传图片");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const previewRef = useRef<string | null>(null);
 
@@ -74,18 +80,20 @@ export default function OCRToolPage() {
     setImageFile(file);
     setPreviewUrl(preview);
     setResult(null);
-    setStatusMessage(file ? "已上传图片，配置识别参数" : "等待上传图片");
   };
 
   const buildResult = (selectedMode: OCRMode, selectedModel: ModelSize): OCRResult => {
     const base = mockOCRResults[selectedMode];
-    const multiplier = selectedModel === "mini" ? 0.6 : selectedModel === "small" ? 0.8 : selectedModel === "large" ? 1.2 : 1;
+    const multiplier =
+      selectedModel === "mini" ? 0.6 : selectedModel === "small" ? 0.8 : selectedModel === "large" ? 1.2 : 1;
     return {
       ...base,
       id: `${base.id}-${selectedModel}`,
       modelSize: selectedModel,
       processTime: Math.round(base.processTime * multiplier),
-      text: `${base.text}\n\n—— 模式：${modeOptions.find((item) => item.value === selectedMode)?.label} · 模型：${modelOptions.find((item) => item.value === selectedModel)?.label}`,
+      text: `${base.text}\n\n—— 模式：${modeOptions.find((item) => item.value === selectedMode)?.label} · 模型：${
+        modelOptions.find((item) => item.value === selectedModel)?.label
+      }`,
     };
   };
 
@@ -95,7 +103,6 @@ export default function OCRToolPage() {
       return;
     }
     setIsProcessing(true);
-    setStatusMessage("正在进行 OCR 识别……");
     setResult(null);
 
     if (timerRef.current) {
@@ -105,13 +112,12 @@ export default function OCRToolPage() {
     timerRef.current = setTimeout(() => {
       const nextResult = buildResult(mode, modelSize);
       setResult(nextResult);
-      setStatusMessage("识别完成，可复制结果");
       setIsProcessing(false);
       toast.success("OCR 识别完成");
     }, 3000);
   };
 
-  const handleCopy = async () => {
+  const handleExport = async () => {
     if (!result?.text) return;
     try {
       await navigator.clipboard.writeText(result.text);
@@ -121,185 +127,176 @@ export default function OCRToolPage() {
     }
   };
 
-  const processingProgress = isProcessing ? 70 : result ? 100 : 0;
-
   return (
-    <div className="container py-10 space-y-8">
-      <header className="space-y-4">
-        <Badge variant="secondary" className="w-fit gap-2">
-          <ScanText className="h-4 w-4" /> OCR 文本识别工具
-        </Badge>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">图像一键转文本，保留结构更懂语境</h1>
-          <p className="max-w-3xl text-muted-foreground">
-            支持截图、合同、扫描件等多场景 OCR 识别，提供结构化输出和多模型选择。上传图片后配置识别模式与模型，几秒钟即可得到可复制的文档。
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          {featureBadges.map((item) => (
-            <div key={item} className="inline-flex items-center gap-2 rounded-full border px-3 py-1">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span>{item}</span>
+    <main className="flex min-h-screen flex-col">
+      <section className="flex-1 overflow-hidden px-6 py-6">
+        <div className="mx-auto flex h-full max-w-6xl flex-col gap-5 overflow-hidden rounded-3xl bg-neutral-950/70 p-6 backdrop-blur">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-neutral-900/60 to-transparent px-8 py-10 text-center shadow-2xl">
+            <div className="mb-3 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-primary">
+              <Sparkles className="h-4 w-4" />
+              <span>DeepSeek OCR</span>
             </div>
-          ))}
-        </div>
-      </header>
+            <h1 className="text-balance text-4xl font-bold tracking-tight text-white">DeepSeek OCR 文本识别工具</h1>
+            <p className="mt-3 text-balance text-base text-muted-foreground">
+              基于深度学习的智能图像文字识别，支持多种文档格式且完整保留原始结构，为复杂业务文档提供准确语境理解
+            </p>
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr,0.7fr]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>上传素材</CardTitle>
-              <CardDescription>拖拽或点击上传需要识别的图片文件</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ImageUpload file={imageFile} previewUrl={previewUrl} onChange={handleImageChange} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>识别配置</CardTitle>
-              <CardDescription>选择识别模式与模型，结合业务场景调优</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <section className="space-y-3">
-                <Label className="text-xs uppercase text-muted-foreground">识别模式</Label>
-                <RadioGroup value={mode} onValueChange={(value) => setMode(value as OCRMode)} className="grid gap-3 lg:grid-cols-3">
-                  {modeOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className={cn(
-                        "flex cursor-pointer flex-col gap-1 rounded-xl border p-3",
-                        mode === option.value ? "border-primary bg-primary/5" : "border-muted"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem id={option.value} value={option.value} />
-                        <span className="font-medium">{option.label}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{option.description}</p>
-                    </label>
+          <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+            <div className="grid shrink-0 grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">功能亮点</h2>
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  {features.map((feature, index) => (
+                    <li key={feature.text} className="flex items-start gap-2">
+                      <feature.icon className="h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>
+                        {index + 1}. {feature.text}
+                      </span>
+                    </li>
                   ))}
-                </RadioGroup>
-              </section>
+                </ul>
+              </CardContent>
+            </Card>
 
-              <section className="space-y-3">
-                <Label className="text-xs uppercase text-muted-foreground">模型大小</Label>
-                <RadioGroup value={modelSize} onValueChange={(value) => setModelSize(value as ModelSize)} className="grid gap-3 md:grid-cols-3">
-                  {modelOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className={cn(
-                        "flex cursor-pointer flex-col gap-1 rounded-xl border p-3",
-                        modelSize === option.value ? "border-primary bg-primary/5" : "border-muted"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem id={option.value} value={option.value} />
-                        <span className="font-medium">{option.label}</span>
-                        {option.value === "recommended" && <BadgeCheck className="h-4 w-4 text-primary" />}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{option.description}</p>
-                    </label>
+            <Card>
+              <CardContent className="p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">使用提示</h2>
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                </div>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  {usageTips.map((tip, index) => (
+                    <li key={tip} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>
+                        {index + 1}. {tip}
+                      </span>
+                    </li>
                   ))}
-                </RadioGroup>
-              </section>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
 
-              <div className="flex flex-wrap items-center gap-4">
-                <Button size="lg" onClick={handleProcess} disabled={isProcessing}>
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      识别中...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      开始处理
-                    </>
-                  )}
-                </Button>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>当前模式：{modeOptions.find((item) => item.value === mode)?.label}</p>
-                  <p>模型：{modelOptions.find((item) => item.value === modelSize)?.label}</p>
+            <div className="grid flex-1 min-h-0 grid-cols-[1.05fr,0.95fr] grid-rows-[260px_minmax(0,1fr)] gap-4">
+              <Card className="row-span-1">
+                <CardContent className="flex h-full flex-col p-4">
+                  <Label className="mb-3 text-sm font-medium">上传图像</Label>
+                  <div className="flex-1">
+                    <ImageUpload file={imageFile} previewUrl={previewUrl} onChange={handleImageChange} compact />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Alert>
-            <AlertTitle>使用提示</AlertTitle>
-            <AlertDescription>
-              <ul className="list-disc space-y-1 pl-4 text-sm">
-                <li>推荐模型适用于大多数文档场景，系统会自动裁剪图像边缘。</li>
-                <li>文档结构输出更适合保留标题、列表、层级结构。</li>
-                <li>普通识别可快速提取短文本或截图内容。</li>
-                <li>使用高分辨率清晰图片可显著提升识别准确率。</li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-        </div>
+            <div className="row-start-2 row-end-3 grid grid-cols-2 gap-4 h-full">
+              <Card>
+                <CardContent className="space-y-3 p-5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">识别类型</Label>
+                    <BadgeCheck className="h-4 w-4 text-primary" />
+                  </div>
+                  <RadioGroup
+                    value={mode}
+                    onValueChange={(value) => setMode(value as OCRMode)}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {modeOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        htmlFor={option.value}
+                        className={cn(
+                          "flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2 text-left transition-colors",
+                          mode === option.value ? "border-primary bg-primary/5 shadow-sm" : "border-muted hover:bg-muted/70"
+                        )}
+                      >
+                        <RadioGroupItem className="sr-only" id={option.value} value={option.value} />
+                        <span className="text-sm font-medium">{option.label}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </CardContent>
+              </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>识别状态</CardTitle>
-              <CardDescription>{statusMessage}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{isProcessing ? "处理中" : result ? "已完成" : "待开始"}</span>
-                <span className="text-muted-foreground">{processingProgress}%</span>
-              </div>
-              <Progress value={processingProgress} />
-              <div className="grid gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-primary" />
-                  <span>模式：{modeOptions.find((item) => item.value === (result?.mode ?? mode))?.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span>模型：{modelOptions.find((item) => item.value === (result?.modelSize ?? modelSize))?.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Timer className="h-4 w-4 text-primary" />
-                  <span>
-                    耗时：{result ? `${(result.processTime / 1000).toFixed(2)}s` : isProcessing ? "识别中" : "--"}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="space-y-3 p-5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">模型大小</Label>
+                    <Shield className="h-4 w-4 text-primary" />
+                  </div>
+                  <RadioGroup
+                    value={modelSize}
+                    onValueChange={(value) => setModelSize(value as ModelSize)}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {modelOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        htmlFor={option.value}
+                        className={cn(
+                          "flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2 text-left transition-colors",
+                          modelSize === option.value ? "border-primary bg-primary/5 shadow-sm" : "border-muted hover:bg-muted/70"
+                        )}
+                      >
+                        <RadioGroupItem className="sr-only" id={option.value} value={option.value} />
+                        <span className="text-sm font-medium">{option.label}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="flex items-start justify-between gap-3">
-              <div>
-                <CardTitle>识别结果</CardTitle>
-                <CardDescription>文本可直接复制到知识库或 PPT</CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleCopy} disabled={!result?.text}>
-                <Copy className="mr-2 h-4 w-4" /> 复制结果
+            <Card className="col-start-2 row-span-2 flex min-h-0 flex-col">
+              <CardContent className="flex flex-1 flex-col p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <Label className="text-sm font-semibold">识别结果</Label>
+                  <FileText className="h-4 w-4 text-primary" />
+                </div>
+                <Textarea
+                  readOnly
+                  value={result?.text ?? "尚未生成结果。请上传图片并点击「开始处理」。"}
+                  className="flex-1 min-h-0 resize-none"
+                />
+                {result && (
+                  <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
+                    <span>置信度: {(result.confidence * 100).toFixed(1)}%</span>
+                    <span>•</span>
+                    <span>耗时: {(result.processTime / 1000).toFixed(2)}s</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+            <div className="grid shrink-0 grid-cols-2 gap-4">
+              <Button size="lg" onClick={handleProcess} disabled={isProcessing} className="w-full">
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    识别中...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    开始处理
+                  </>
+                )}
               </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Label>识别文本</Label>
-              <Textarea
-                readOnly
-                value={result?.text ?? "还未生成结果。请上传图片并点击“开始处理”。"}
-                className="min-h-[400px] resize-none"
-              />
-              {result && (
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline">置信度 {(result.confidence * 100).toFixed(1)}%</Badge>
-                  <Badge variant="outline">生成时间 {(result.processTime / 1000).toFixed(2)}s</Badge>
-                  <Badge variant="outline">模型 {modelOptions.find((item) => item.value === result.modelSize)?.label}</Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <Button size="lg" variant="outline" onClick={handleExport} disabled={!result?.text} className="w-full">
+                <Download className="mr-2 h-5 w-5" />
+                导出结果
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

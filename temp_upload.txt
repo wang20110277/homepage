@@ -1,0 +1,166 @@
+   1: "use client";
+   2: 
+   3: import { useRef, useState } from "react";
+   4: import Image from "next/image";
+   5: import { UploadCloud, Trash2, AlertCircle } from "lucide-react";
+   6: import { Button } from "@/components/ui/button";
+   7: import { Badge } from "@/components/ui/badge";
+   8: import { cn } from "@/lib/utils";
+   9: 
+  10: const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  11: const MAX_FILE_SIZE_MB = 5;
+  12: 
+  13: /**
+  14:  * ImageUpload ????
+  15:  */
+  16: interface ImageUploadProps {
+  17:   /** ????????? */
+  18:   file: File | null;
+  19:   /** ???? URL */
+  20:   previewUrl: string | null;
+  21:   /** ???????? */
+  22:   onChange: (file: File | null, previewUrl: string | null) => void;
+  23:   /** ?????? */
+  24:   helperText?: string;
+  25:   /** ???????? */
+  26:   compact?: boolean;
+  27: }
+  28: 
+  29: /**
+  30:  * ??????
+  31:  *
+  32:  * ???????????,??????????
+  33:  * ????????,????????????
+  34:  *
+  35:  * @example
+  36:  * ```tsx
+  37:  * const [file, setFile] = useState<File | null>(null);
+  38:  * const [preview, setPreview] = useState<string | null>(null);
+  39:  *
+  40:  * <ImageUpload
+  41:  *   file={file}
+  42:  *   previewUrl={preview}
+  43:  *   onChange={(newFile, newPreview) => {
+  44:  *     setFile(newFile);
+  45:  *     setPreview(newPreview);
+  46:  *   }}
+  47:  * />
+  48:  * ```
+  49:  */
+  50: export function ImageUpload({ file, previewUrl, onChange, helperText, compact = false }: ImageUploadProps) {
+  51:   const inputRef = useRef<HTMLInputElement>(null);
+  52:   const [isDragging, setIsDragging] = useState(false);
+  53:   const [error, setError] = useState<string | null>(null);
+  54: 
+  55:   const validateFile = (candidate: File) => {
+  56:     if (!ACCEPTED_TYPES.includes(candidate.type)) {
+  57:       setError("??????????");
+  58:       return false;
+  59:     }
+  60:     if (candidate.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+  61:       setError(`???????? ${MAX_FILE_SIZE_MB}MB`);
+  62:       return false;
+  63:     }
+  64:     return true;
+  65:   };
+  66: 
+  67:   const handleFileChange = (files: FileList | null) => {
+  68:     if (!files?.length) return;
+  69:     const picked = files[0];
+  70:     if (!validateFile(picked)) {
+  71:       return;
+  72:     }
+  73:     const preview = URL.createObjectURL(picked);
+  74:     onChange(picked, preview);
+  75:     setError(null);
+  76:   };
+  77: 
+  78:   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  79:     event.preventDefault();
+  80:     setIsDragging(false);
+  81:     handleFileChange(event.dataTransfer?.files ?? null);
+  82:   };
+  83: 
+  84:   const handleRemove = () => {
+  85:     if (previewUrl) {
+  86:       URL.revokeObjectURL(previewUrl);
+  87:     }
+  88:     onChange(null, null);
+  89:   };
+  90: 
+  91:   return (
+  92:     <div className={cn("space-y-4", compact && "space-y-3")}>
+  93:       <div
+  94:         onDragOver={(event) => {
+  95:           event.preventDefault();
+  96:           setIsDragging(true);
+  97:         }}
+  98:         onDragLeave={(event) => {
+  99:           event.preventDefault();
+ 100:           setIsDragging(false);
+ 101:         }}
+ 102:         onDrop={handleDrop}
+ 103:         className={cn(
+ 104:           "border-2 border-dashed rounded-2xl transition flex flex-col text-center",
+ 105:           compact ? "gap-3 p-4" : "gap-4 p-6",
+ 106:           isDragging ? "border-primary bg-primary/5" : "border-muted"
+ 107:         )}
+ 108:       >
+ 109:         {previewUrl ? (
+ 110:           <div
+ 111:             className={cn(
+ 112:               "relative mx-auto w-full max-w-md overflow-hidden rounded-xl",
+ 113:               compact ? "h-44" : "h-56"
+ 114:             )}
+ 115:           >
+ 116:             <Image src={previewUrl} alt="????" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+ 117:           </div>
+ 118:         ) : (
+ 119:           <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
+ 120:             <UploadCloud className="h-10 w-10 text-primary" />
+ 121:             <p className="font-medium text-foreground">???????,?????</p>
+ 122:           </div>
+ 123:         )}
+ 124: 
+ 125:         {!compact && (
+ 126:           <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+ 127:             <span>????:</span>
+ 128:             {ACCEPTED_TYPES.map((type) => (
+ 129:               <Badge key={type} variant="secondary">
+ 130:                 {type.split("/")[1]?.toUpperCase()}
+ 131:               </Badge>
+ 132:             ))}
+ 133:           </div>
+ 134:         )}
+ 135: 
+ 136:         <div className="flex flex-wrap items-center justify-center gap-3">
+ 137:           <Button variant="outline" onClick={() => inputRef.current?.click()}>
+ 138:             ????
+ 139:           </Button>
+ 140:           {file && (
+ 141:             <Button variant="ghost" onClick={handleRemove} className="text-destructive">
+ 142:               <Trash2 className="mr-2 h-4 w-4" /> ????
+ 143:             </Button>
+ 144:           )}
+ 145:         </div>
+ 146: 
+ 147:         <input
+ 148:           ref={inputRef}
+ 149:           type="file"
+ 150:           accept={ACCEPTED_TYPES.join(",")}
+ 151:           className="sr-only"
+ 152:           onChange={(event) => handleFileChange(event.target.files)}
+ 153:         />
+ 154: 
+ 155:         {helperText && !compact && <p className="text-sm text-muted-foreground">{helperText}</p>}
+ 156:       </div>
+ 157: 
+ 158:       {error && (
+ 159:         <div className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+ 160:           <AlertCircle className="h-4 w-4" />
+ 161:           <span>{error}</span>
+ 162:         </div>
+ 163:       )}
+ 164:     </div>
+ 165:   );
+ 166: }

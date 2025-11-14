@@ -14,12 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CometCard } from "@/components/ui/comet-card";
 import { mockPPTTemplates } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import {
-  ArrowRight,
-  FileText,
-  Loader2,
-  Upload,
-} from "lucide-react";
+import { ArrowRight, FileText, Loader2, Upload } from "lucide-react";
 
 // 生成5-20的所有页数选项
 const slideOptions = Array.from({ length: 16 }, (_, i) => ({
@@ -84,8 +79,7 @@ export default function PPTGeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container max-w-4xl mx-auto py-16 space-y-12">
+    <main className="container mx-auto max-w-4xl space-y-12 py-16">
         {/* Header */}
         <header className="text-center space-y-4">
           <h1 className="text-5xl font-bold tracking-tight">
@@ -271,7 +265,6 @@ export default function PPTGeneratorPage() {
             </>
           )}
         </Button>
-      </div>
-    </div>
+    </main>
   );
 }

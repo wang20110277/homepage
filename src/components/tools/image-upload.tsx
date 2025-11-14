@@ -22,6 +22,8 @@ interface ImageUploadProps {
   onChange: (file: File | null, previewUrl: string | null) => void;
   /** 辅助提示文本 */
   helperText?: string;
+  /** 是否使用紧凑展示 */
+  compact?: boolean;
 }
 
 /**
@@ -45,12 +47,7 @@ interface ImageUploadProps {
  * />
  * ```
  */
-export function ImageUpload({
-  file,
-  previewUrl,
-  onChange,
-  helperText = "支持 JPG / PNG / WEBP，单张不超过 5MB",
-}: ImageUploadProps) {
+export function ImageUpload({ file, previewUrl, onChange, helperText, compact = false }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +89,7 @@ export function ImageUpload({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", compact && "space-y-3")}>
       <div
         onDragOver={(event) => {
           event.preventDefault();
@@ -104,30 +101,37 @@ export function ImageUpload({
         }}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-2xl p-6 transition flex flex-col gap-4 text-center",
+          "border-2 border-dashed rounded-2xl transition flex flex-col text-center",
+          compact ? "gap-3 p-4" : "gap-4 p-6",
           isDragging ? "border-primary bg-primary/5" : "border-muted"
         )}
       >
         {previewUrl ? (
-          <div className="relative mx-auto h-56 w-full max-w-md overflow-hidden rounded-xl">
+          <div
+            className={cn(
+              "relative mx-auto w-full max-w-md overflow-hidden rounded-xl",
+              compact ? "h-44" : "h-56"
+            )}
+          >
             <Image src={previewUrl} alt="上传预览" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <UploadCloud className="h-10 w-10 text-primary" />
             <p className="font-medium text-foreground">拖拽图片到这里，或点击上传</p>
-            <p className="text-sm">支持截图、证件、扫描件等素材</p>
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
-          <span>允许格式：</span>
-          {ACCEPTED_TYPES.map((type) => (
-            <Badge key={type} variant="secondary">
-              {type.split("/")[1]?.toUpperCase()}
-            </Badge>
-          ))}
-        </div>
+        {!compact && (
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+            <span>允许格式：</span>
+            {ACCEPTED_TYPES.map((type) => (
+              <Badge key={type} variant="secondary">
+                {type.split("/")[1]?.toUpperCase()}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button variant="outline" onClick={() => inputRef.current?.click()}>
@@ -148,7 +152,7 @@ export function ImageUpload({
           onChange={(event) => handleFileChange(event.target.files)}
         />
 
-        <p className="text-sm text-muted-foreground">{helperText}</p>
+        {helperText && !compact && <p className="text-sm text-muted-foreground">{helperText}</p>}
       </div>
 
       {error && (
