@@ -1,4 +1,14 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname === "/") {
+    return null;
+  }
+
   return (
     <footer className="border-t py-6 text-center text-sm text-muted-foreground">
       <div className="container mx-auto px-4">

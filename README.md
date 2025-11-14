@@ -1,31 +1,19 @@
-# Agentic Coding Boilerplate
+# 工作台系统
 
-A complete agentic coding boilerplate with authentication, PostgreSQL database, AI chat functionality, and modern UI components - perfect for building AI-powered applications and autonomous agents.
+集成多种实用工具的一站式工作平台，为您提供 PPT 生成、OCR 文字识别、企业信息查询等强大功能。
 
-## 🚀 Features
+## 🚀 核心功能
 
-- **🔐 Authentication**: Better Auth with Google OAuth integration
-- **🗃️ Database**: Drizzle ORM with PostgreSQL
-- **🤖 AI Integration**: Vercel AI SDK with OpenRouter (access to 100+ AI models)
-- **🎨 UI Components**: shadcn/ui with Tailwind CSS
-- **⚡ Modern Stack**: Next.js 15, React 19, TypeScript
-- **📱 Responsive**: Mobile-first design approach
+- **🎤 PPT 生成器**: 智能生成专业演示文稿，支持多种模板和自定义设置
+- **🔍 OCR 文字识别**: 高精度图片文字识别，支持多种文档类型和输出格式
+- **🏢 企业信息查询**: 快速查询企业工商信息，生成专业尽调报告
+- **📋 个人工作台**: Todo 待办事项、日历视图、系统公告等实用功能
+- **🔐 用户认证**: Better Auth with Google OAuth 集成
+- **🎨 现代 UI**: shadcn/ui 组件库 + Tailwind CSS 4
+- **⚡ 技术栈**: Next.js 15, React 19, TypeScript
+- **📱 响应式设计**: 完美支持桌面端和移动端
 
-## 🎥 Video Tutorial
-
-Watch the complete walkthrough of this agentic coding template:
-
-[![Agentic Coding Boilerplate Tutorial](https://img.youtube.com/vi/T0zFZsr_d0Q/maxresdefault.jpg)](https://youtu.be/T0zFZsr_d0Q)
-
-<a href="https://youtu.be/T0zFZsr_d0Q" target="_blank" rel="noopener noreferrer">🔗 Watch on YouTube</a>
-
-## ☕ Support This Project
-
-If this boilerplate helped you build something awesome, consider buying me a coffee!
-
-[![Buy me a coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/leonvanzyl)
-
-## 📋 Prerequisites
+## 📋 系统要求
 
 Before you begin, ensure you have the following installed on your machine:
 
@@ -163,48 +151,67 @@ Your application will be available at [http://localhost:3000](http://localhost:3
 5. Copy the API key and add it to your `.env` file as `OPENROUTER_API_KEY`
 6. Browse available models at <a href="https://openrouter.ai/models" target="_blank">OpenRouter Models</a>
 
-## 🗂️ Project Structure
+## 🗂️ 项目结构
 
 ```
 src/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   │   ├── auth/          # Authentication endpoints
-│   │   └── chat/          # AI chat endpoint
-│   ├── chat/              # AI chat page
-│   ├── dashboard/         # User dashboard
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── auth/             # Authentication components
-│   └── ui/               # shadcn/ui components
-└── lib/                  # Utilities and configurations
-    ├── auth.ts           # Better Auth configuration
-    ├── auth-client.ts    # Client-side auth utilities
-    ├── db.ts             # Database connection
-    ├── schema.ts         # Database schema
-    └── utils.ts          # General utilities
+├── app/                          # Next.js 应用目录
+│   ├── api/                     # API 路由
+│   │   └── auth/                # 认证端点
+│   ├── dashboard/               # 个人工作台
+│   ├── tools/                   # 工具页面
+│   │   ├── ppt-generator/       # PPT 生成器
+│   │   ├── ocr/                 # OCR 识别工具
+│   │   └── tianyancha/          # 天眼查企业查询
+│   └── page.tsx                 # 首页
+├── components/                   # React 组件
+│   ├── auth/                    # 认证组件
+│   ├── dashboard/               # 工作台组件
+│   │   ├── digital-clock.tsx    # 数字时钟
+│   │   ├── todo-list.tsx        # 待办事项列表
+│   │   ├── calendar-view.tsx    # 日历视图
+│   │   ├── announcement-board.tsx # 公告栏
+│   │   └── tool-cards.tsx       # 工具卡片
+│   ├── tools/                   # 工具组件
+│   │   ├── file-upload.tsx      # 文件上传
+│   │   ├── image-upload.tsx     # 图片上传
+│   │   ├── company-info-card.tsx # 企业信息卡片
+│   │   └── ...                  # 其他工具组件
+│   └── ui/                      # shadcn/ui 组件
+├── lib/                         # 工具库和配置
+│   ├── auth.ts                  # Better Auth 配置
+│   ├── auth-client.ts           # 客户端认证工具
+│   ├── db.ts                    # 数据库连接
+│   ├── schema.ts                # 数据库模式
+│   ├── mock-data.ts             # Mock 数据
+│   └── utils.ts                 # 通用工具函数
+└── types/                       # TypeScript 类型定义
+    └── index.ts                 # 全局类型
 ```
 
-## 🔧 Available Scripts
+## 🔧 可用命令
 
 ```bash
-npm run dev          # Start development server with Turbopack
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run db:generate  # Generate database migrations
-npm run db:migrate   # Run database migrations
-npm run db:push      # Push schema changes to database
-npm run db:studio    # Open Drizzle Studio (database GUI)
-npm run db:dev       # Push schema for development
-npm run db:reset     # Reset database (drop all tables)
+npm run dev          # 启动开发服务器（Turbopack）
+npm run build        # 生产环境构建
+npm run start        # 启动生产服务器
+npm run lint         # 运行 ESLint 代码检查
+npm run typecheck    # TypeScript 类型检查
+npm run db:generate  # 生成数据库迁移
+npm run db:migrate   # 运行数据库迁移
+npm run db:push      # 推送 schema 变更到数据库
+npm run db:studio    # 打开 Drizzle Studio（数据库 GUI）
+npm run db:dev       # 开发环境推送 schema
+npm run db:reset     # 重置数据库（删除所有表）
 ```
 
-## 📖 Pages Overview
+## 📖 页面概览
 
-- **Home (`/`)**: Landing page with setup instructions and features overview
-- **Dashboard (`/dashboard`)**: Protected user dashboard with profile information
-- **Chat (`/chat`)**: AI-powered chat interface using OpenRouter (requires authentication)
+- **首页 (`/`)**: 欢迎页面，介绍系统功能和特性
+- **工作台 (`/dashboard`)**: 个人工作台，包含 Todo、日历、公告栏和工具入口
+- **PPT 生成器 (`/tools/ppt-generator`)**: 智能 PPT 生成工具，支持模板选择和自定义设置
+- **OCR 识别 (`/tools/ocr`)**: 图片文字识别工具，支持多种识别模式和模型
+- **企业查询 (`/tools/tianyancha`)**: 企业工商信息查询和尽调报告生成
 
 ## 🚀 Deployment
 
@@ -225,44 +232,55 @@ npm run db:reset     # Reset database (drop all tables)
 3. Follow the prompts to configure your deployment
 4. Add your environment variables when prompted or via the Vercel dashboard
 
-### Production Environment Variables
+### 生产环境变量
 
-Ensure these are set in your production environment:
+确保在生产环境中设置以下变量：
 
-- `POSTGRES_URL` - Production PostgreSQL connection string
-- `BETTER_AUTH_SECRET` - Secure random 32+ character string
-- `GOOGLE_CLIENT_ID` - Google OAuth Client ID
-- `GOOGLE_CLIENT_SECRET` - Google OAuth Client Secret
-- `OPENROUTER_API_KEY` - OpenRouter API key (optional, for AI chat functionality)
-- `OPENROUTER_MODEL` - Model name from OpenRouter (optional, defaults to openai/gpt-5-mini)
-- `NEXT_PUBLIC_APP_URL` - Your production domain
+- `POSTGRES_URL` - 生产环境 PostgreSQL 连接字符串
+- `BETTER_AUTH_SECRET` - 安全的 32+ 字符随机密钥
+- `GOOGLE_CLIENT_ID` - Google OAuth 客户端 ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth 客户端密钥
+- `NEXT_PUBLIC_APP_URL` - 生产环境域名
 
-## 🎥 Tutorial Video
+## 🎯 技术特性
 
-Watch my comprehensive tutorial on how to use this agentic coding boilerplate to build AI-powered applications:
+### 前端技术
+- **Next.js 15** with App Router
+- **React 19** with Server Components
+- **TypeScript** 严格类型检查
+- **Tailwind CSS 4** 现代化样式系统
+- **shadcn/ui** 高质量 UI 组件库
 
-<a href="https://youtu.be/T0zFZsr_d0Q" target="_blank" rel="noopener noreferrer">📺 YouTube Tutorial - Building with Agentic Coding Boilerplate</a>
+### 数据管理
+- **PostgreSQL** 数据库
+- **Drizzle ORM** 类型安全的数据库操作
+- **Mock 数据** 前端开发时使用
 
-## 🤝 Contributing
+### 用户体验
+- **响应式设计** 完美适配各种设备
+- **暗色模式** 支持明暗主题切换
+- **流畅动画** 自定义过渡效果
+- **无障碍支持** 符合 WCAG 标准
 
-1. Fork this repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📝 开发说明
 
-## 📝 License
+当前项目处于前端演示阶段，使用 Mock 数据模拟后端功能：
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Todo 管理**: 使用本地状态管理
+- **PPT 生成**: 模拟生成过程和结果
+- **OCR 识别**: 返回预设的识别结果
+- **企业查询**: 从 Mock 数据中匹配企业信息
 
-## 🆘 Need Help?
+后续可以集成真实的后端服务：
+- 添加 RESTful API 或 GraphQL
+- 集成 OCR 服务（如 Tesseract.js、云 OCR）
+- 集成企业查询 API
+- 集成 PPT 生成库（如 pptxgenjs）
 
-If you encounter any issues:
+## 📄 许可证
 
-1. Check the [Issues](https://github.com/leonvanzyl/agentic-coding-starter-kit/issues) section
-2. Review the documentation above
-3. Create a new issue with detailed information about your problem
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-**Happy coding! 🚀**
+**开发愉快! 🚀**

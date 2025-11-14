@@ -1,142 +1,130 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  Presentation,
-  ScanText,
-  Building2,
-  ArrowRight,
-  CheckCircle2
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { WavyBackground } from "@/components/ui/wavy-background";
+
+const FIXED_USERNAME = "zhangbin";
+const FIXED_PASSWORD = "Bobcfc1234";
 
 export default function Home() {
+  const router = useRouter();
+  const [showForm, setShowForm] = useState(false);
+  const [username, setUsername] = useState(FIXED_USERNAME);
+  const [password, setPassword] = useState(FIXED_PASSWORD);
+  const [status, setStatus] = useState<"success" | "error" | null>(null);
+
+  const handleRevealForm = () => {
+    setShowForm(true);
+    setStatus(null);
+  };
+
+  const handleResetForm = () => {
+    setShowForm(false);
+    setStatus(null);
+    setUsername(FIXED_USERNAME);
+    setPassword(FIXED_PASSWORD);
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const isValid = username === FIXED_USERNAME && password === FIXED_PASSWORD;
+
+    if (isValid) {
+      setStatus("success");
+      router.push("/home");
+      return;
+    }
+
+    setStatus("error");
+  };
+
   return (
-    <main className="flex-1">
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
-            工作台系统
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            集成多种实用工具的一站式工作平台
-          </p>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            为您提供 PPT 生成、OCR 文字识别、企业信息查询等强大功能
-          </p>
+    <main className="min-h-svh bg-background text-foreground">
+      <WavyBackground
+        containerClassName="relative"
+        className="flex min-h-svh w-full flex-col items-center justify-center px-6 py-16 text-white"
+      >
+        <div className="flex w-full max-w-4xl flex-col items-center text-center">
+          <div className="flex min-h-[260px] w-full flex-col items-center justify-center space-y-4">
+            <p className="text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
+              Bank of Beijing
+            </p>
+            <p className="text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
+              Consumer Finance Company
+            </p>
+            <p className="text-lg text-white/80">
+              <span className="font-semibold">
+                {"\u805a\u7126\u573a\u666f\uff0c\u8d4b\u80fd\u6d88\u8d39\u91d1\u878d\u6570\u5b57\u5316\u5347\u7ea7"}
+              </span>
+            </p>
+          </div>
 
-          <div className="pt-6">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/dashboard">
-                进入工作台
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-            </Button>
+          <div className="mt-12 w-full max-w-md rounded-2xl bg-black/40 p-8 shadow-2xl ring-1 ring-white/10 backdrop-blur">
+            {!showForm ? (
+              <Button
+                size="lg"
+                className="w-full bg-white/10 text-white hover:bg-white/20"
+                onClick={handleRevealForm}
+                aria-label="\u7acb\u5373\u4f53\u9a8c"
+              >
+                {"\u7acb\u5373\u4f53\u9a8c"}
+              </Button>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <div className="space-y-2 text-left">
+                  <Label htmlFor="username" className="text-white/80">
+                    {"\u7528\u6237\u540d"}
+                  </Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    autoComplete="username"
+                    className="border-white/20 bg-white/5 text-white placeholder:text-white/60 focus-visible:ring-white/60"
+                  />
+                </div>
+                <div className="space-y-2 text-left">
+                  <Label htmlFor="password" className="text-white/80">
+                    {"\u5bc6\u7801"}
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                    className="border-white/20 bg-white/5 text-white placeholder:text-white/60 focus-visible:ring-white/60"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <Button type="submit" size="lg" className="flex-1">
+                    {"\u767b\u5f55"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 border-white/40 text-white hover:bg-white/10"
+                    onClick={handleResetForm}
+                  >
+                    {"\u8fd4\u56de"}
+                  </Button>
+                </div>
+                {status === "error" && (
+                  <p className="text-center text-sm text-red-300">
+                    {"\u51ed\u8bc1\u4e0d\u6b63\u786e\uff0c\u8bf7\u4f7f\u7528\u6f14\u793a\u8d26\u53f7"} ({FIXED_USERNAME} / {FIXED_PASSWORD})
+                  </p>
+                )}
+              </form>
+            )}
           </div>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-16 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">核心功能</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* PPT Generator */}
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
-                <Presentation className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">PPT 生成器</h3>
-              <p className="text-muted-foreground mb-4">
-                快速创建专业演示文稿，支持多种模板和自定义设置
-              </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>多种页数和语言选择</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>支持上传参考资料</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>丰富的模板库</span>
-                </li>
-              </ul>
-            </Card>
-
-            {/* OCR Tool */}
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
-                <ScanText className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">OCR 文字识别</h3>
-              <p className="text-muted-foreground mb-4">
-                高精度图片文字识别，支持多种文档类型和输出格式
-              </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>多种识别模式可选</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>文档结构化输出</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>支持多种模型大小</span>
-                </li>
-              </ul>
-            </Card>
-
-            {/* Tianyancha */}
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">企业信息查询</h3>
-              <p className="text-muted-foreground mb-4">
-                快速查询企业工商信息，生成专业尽调报告
-              </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>完整的工商信息</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>股东和变更记录</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>一键生成尽调报告</span>
-                </li>
-              </ul>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold">开始使用</h2>
-          <p className="text-lg text-muted-foreground">
-            登录后即可访问所有工具和个人工作台
-          </p>
-          <div className="pt-4">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/dashboard">
-                立即开始
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      </WavyBackground>
     </main>
   );
 }

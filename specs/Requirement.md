@@ -1,3 +1,16 @@
+# Login Landing Page
+
+- [x] Split the hero into two equal columns: left column shows Bank of Beijing / Consumer Finance / Company, right column remains empty for future widgets.
+- [x] Position the primary login button directly beneath the hero. Clicking it swaps the button for username/password inputs.
+- [x] Pre-fill and validate credentials against the fixed pair zhangbin / Bobcfc1234 so manual smoke tests stay deterministic.
+- [x] Remove the global navigation bar when users view `/` so the landing screen stays distraction free.
+- [x] Redirect successful logins to the legacy homepage at `/home` until the dashboard flow is ready.
+- [x] Stretch the landing view to fill the viewport (`min-h-svh`) so no scrolling is needed on any window size.
+- [x] Hide the footer (2025 工作台系统文本) on the landing page to keep the canvas clean.
+- [x] Remove the welcome helper sentence so only the three-line headline remains on the left side.
+- [x] Present a single-column hero with the three-line headline centered both vertically and horizontally.
+- [x] Place the 登录 button (or login form) directly beneath the headline with comfortable spacing.
+
 # 项目需求文档
 
 ## 项目概述

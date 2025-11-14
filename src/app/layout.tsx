@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agentic Coding Boilerplate",
+  title: "工作台系统 - 集成多种实用工具的一站式工作平台",
   description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling - perfect for building AI-powered applications and autonomous agents by Leon van Zyl",
+    "工作台系统为您提供 PPT 生成、OCR 文字识别、企业信息查询等强大功能,打造高效便捷的工作体验。",
 };
 
 export default function RootLayout({
@@ -40,6 +41,7 @@ export default function RootLayout({
           <SiteHeader />
           {children}
           <SiteFooter />
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>
