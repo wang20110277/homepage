@@ -17,11 +17,6 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   {
-    name: "工作台",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
     name: "PPT生成",
     href: "/tools/ppt-generator",
     icon: Presentation,
@@ -51,14 +46,14 @@ export function SiteHeader() {
         {/* Logo */}
         <div className="flex items-center gap-6">
           <Link
-            href="/"
+            href="/home"
             className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
               <LayoutDashboard className="h-5 w-5" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              工作台
+              主页
             </span>
           </Link>
 

@@ -1,8 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "@/lib/auth-client";
-import { SignInButton } from "./sign-in-button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,28 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
+
+// Mock user for demo purposes
+const MOCK_USER = {
+  name: "zhangbin",
+  email: "zhangbin@example.com",
+};
 
 export function UserProfile() {
-  const { data: session, isPending } = useSession();
   const router = useRouter();
 
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
-
-  if (!session) {
-    return (
-      <div className="flex flex-col items-center gap-4 p-6">
-        <SignInButton />
-      </div>
-    );
-  }
-
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
     router.replace("/");
     router.refresh();
   };
@@ -41,17 +30,8 @@ export function UserProfile() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 cursor-pointer hover:opacity-80 transition-opacity">
-          <AvatarImage
-            src={session.user?.image || ""}
-            alt={session.user?.name || "User"}
-            referrerPolicy="no-referrer"
-          />
           <AvatarFallback>
-            {(
-              session.user?.name?.[0] ||
-              session.user?.email?.[0] ||
-              "U"
-            ).toUpperCase()}
+            {MOCK_USER.name[0].toUpperCase()}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
@@ -59,24 +39,17 @@ export function UserProfile() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {session.user?.name}
+              {MOCK_USER.name}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {session.user?.email}
+              {MOCK_USER.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/profile" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            Your Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} variant="destructive">
           <LogOut className="mr-2 h-4 w-4" />
-          Log out
+          退出登录
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

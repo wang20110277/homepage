@@ -232,3 +232,11 @@ button, a, input, textarea, select {
   outline-offset: 2px;
   border-radius: 4px;
 }
+/* 3D Transform utilities for CometCard */
+.perspective-distant {
+  perspective: 1000px;
+}
+
+.transform-3d {
+  transform-style: preserve-3d;
+}
