@@ -14,7 +14,9 @@
       "Bash(pnpm dlx:*)",
       "Bash(pnpm run typecheck:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__shadcn__search_items_in_registries",
+      "Bash(pnpm run lint)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

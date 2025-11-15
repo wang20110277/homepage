@@ -79,7 +79,7 @@ export default function PPTGeneratorPage() {
   };
 
   return (
-    <main className="container mx-auto max-w-4xl space-y-12 py-16">
+    <main className="container mx-auto max-w-4xl space-y-12 pb-16 pt-20">
         {/* Header */}
         <header className="text-center space-y-4">
           <h1 className="text-5xl font-bold tracking-tight">

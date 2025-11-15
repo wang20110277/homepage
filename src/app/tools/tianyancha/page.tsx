@@ -192,7 +192,7 @@ export default function TianyanchaToolPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col space-y-10 px-6 py-10 md:px-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-col space-y-10 px-6 pb-10 pt-20 md:px-8">
       <header className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight">天眼查企业查询工作台</h1>
         <p className="text-sm text-muted-foreground md:text-base">
