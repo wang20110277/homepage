@@ -16,7 +16,10 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(git commit:*)",
       "mcp__shadcn__search_items_in_registries",
-      "Bash(pnpm run lint)"
+      "Bash(pnpm run lint)",
+      "Bash(curl:*)",
+      "Bash(Remove-Item -Recurse -Force D:Claudehomepage.next)",
+      "Bash(git restore:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
