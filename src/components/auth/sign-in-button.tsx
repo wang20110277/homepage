@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, useSession } from "@/lib/auth-client";
+import { useSession, signInWithOIDC } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 export function SignInButton() {
@@ -17,10 +17,7 @@ export function SignInButton() {
   return (
     <Button
       onClick={async () => {
-        await signIn.social({
-          provider: "google",
-          callbackURL: "/dashboard",
-        });
+        await signInWithOIDC("/dashboard");
       }}
     >
       Sign in

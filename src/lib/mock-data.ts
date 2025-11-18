@@ -1,5 +1,4 @@
 import type {
-  User,
   Todo,
   Announcement,
   PPTTemplate,
@@ -7,13 +6,7 @@ import type {
   CompanyInfo,
 } from "@/types";
 
-// Mock 测试用户
-export const mockUser: User = {
-  id: "test-user-001",
-  name: "张三",
-  email: "zhangsan@example.com",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-};
+const demoUserId = "test-user-001";
 
 // Mock Todos 数据
 export const mockTodos: Todo[] = [
@@ -24,7 +17,7 @@ export const mockTodos: Todo[] = [
     completed: false,
     dueDate: "2025-11-15",
     createdAt: "2025-11-10T08:00:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
   {
     id: "todo-002",
@@ -33,7 +26,7 @@ export const mockTodos: Todo[] = [
     completed: true,
     dueDate: "2025-11-13",
     createdAt: "2025-11-09T10:30:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
   {
     id: "todo-003",
@@ -42,7 +35,7 @@ export const mockTodos: Todo[] = [
     completed: false,
     dueDate: "2025-11-20",
     createdAt: "2025-11-11T14:20:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
   {
     id: "todo-004",
@@ -51,7 +44,7 @@ export const mockTodos: Todo[] = [
     completed: false,
     dueDate: "2025-11-25",
     createdAt: "2025-11-12T09:15:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
   {
     id: "todo-005",
@@ -60,7 +53,7 @@ export const mockTodos: Todo[] = [
     completed: false,
     dueDate: "2025-11-14",
     createdAt: "2025-11-13T08:00:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
   {
     id: "todo-006",
@@ -69,7 +62,7 @@ export const mockTodos: Todo[] = [
     completed: false,
     dueDate: "2025-11-18",
     createdAt: "2025-11-10T16:45:00Z",
-    userId: mockUser.id,
+    userId: demoUserId,
   },
 ];
 
