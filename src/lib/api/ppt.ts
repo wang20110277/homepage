@@ -83,6 +83,53 @@ export interface TemplateInfo {
 }
 
 /**
+ * Presentation list item (simplified for list view)
+ */
+export interface PresentationListItem {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt?: string;
+  slideCount: number;
+  thumbnail?: string;
+}
+
+/**
+ * Slide content for preview
+ */
+export interface SlideContent {
+  index: number;
+  title?: string;
+  content: Record<string, unknown>;
+  thumbnail?: string;
+  type?: string;
+}
+
+/**
+ * Presentation detail (full data with slides)
+ */
+export interface PresentationDetail {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt?: string;
+  slides: SlideContent[];
+  template?: string;
+  language?: string;
+  downloadUrl?: string;
+  previewUrl?: string;
+}
+
+/**
+ * Export result
+ */
+export interface ExportResult {
+  downloadUrl: string;
+  format: "pptx" | "pdf";
+  expiresAt?: string;
+}
+
+/**
  * API error type
  */
 export class PPTApiError extends Error {
@@ -238,4 +285,96 @@ export async function pollTaskUntilComplete(
     { attempts, taskId },
     taskId
   );
+}
+
+/**
+ * Get all user presentations
+ */
+export async function getPresentations(): Promise<PresentationListItem[]> {
+  const response = await fetch("/api/ppt/presentations");
+
+  interface RawPresentation {
+    id: string;
+    title?: string;
+    slides?: unknown[];
+    created_at?: string;
+    updated_at?: string;
+  }
+
+  const rawData = await handleResponse<RawPresentation[]>(response);
+
+  // Transform the data to match our interface
+  return rawData.map((item) => ({
+    id: item.id,
+    title: item.title || "Untitled Presentation",
+    createdAt: item.created_at || new Date().toISOString(),
+    updatedAt: item.updated_at,
+    slideCount: item.slides?.length || 0,
+    thumbnail: undefined, // Will be added if API provides it
+  }));
+}
+
+/**
+ * Get presentation by ID with full details
+ */
+export async function getPresentationById(
+  id: string
+): Promise<PresentationDetail> {
+  const response = await fetch(`/api/ppt/presentations/${id}`);
+
+  interface RawPresentationDetail {
+    id: string;
+    title?: string;
+    slides?: Array<{
+      index?: number;
+      title?: string;
+      content?: Record<string, unknown>;
+      type?: string;
+    }>;
+    created_at?: string;
+    updated_at?: string;
+    template?: string;
+    language?: string;
+    download_url?: string;
+    preview_url?: string;
+  }
+
+  const rawData = await handleResponse<RawPresentationDetail>(response);
+
+  // Transform the data to match our interface
+  return {
+    id: rawData.id,
+    title: rawData.title || "Untitled Presentation",
+    createdAt: rawData.created_at || new Date().toISOString(),
+    updatedAt: rawData.updated_at,
+    slides: (rawData.slides || []).map((slide, index) => ({
+      index: slide.index ?? index,
+      title: slide.title,
+      content: slide.content || {},
+      thumbnail: undefined,
+      type: slide.type,
+    })),
+    template: rawData.template,
+    language: rawData.language,
+    downloadUrl: rawData.download_url,
+    previewUrl: rawData.preview_url,
+  };
+}
+
+/**
+ * Export presentation as PPTX or PDF
+ */
+export async function exportPresentation(
+  id: string,
+  format: "pptx" | "pdf" = "pptx"
+): Promise<ExportResult> {
+  const response = await fetch(`/api/ppt/presentations/${id}/export`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ format }),
+  });
+
+  return handleResponse<ExportResult>(response);
 }

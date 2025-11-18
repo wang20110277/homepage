@@ -19,6 +19,7 @@ import {
   Zap,
   FileText,
   Shield,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -127,9 +128,19 @@ export default function OCRToolPage() {
     }
   };
 
+  const handleCopyResult = async () => {
+    if (!result?.text) return;
+    try {
+      await navigator.clipboard.writeText(result.text);
+      toast.success("已复制到剪贴板");
+    } catch {
+      toast.error("复制失败，请手动选择文本");
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col pt-14">
-      <section className="flex-1 overflow-hidden px-6 py-6">
+      <section className="flex-1 overflow-hidden px-6 py-6 -mt-[3vh]">
         <div className="mx-auto flex h-full max-w-6xl flex-col gap-5 overflow-hidden rounded-3xl bg-neutral-950/70 p-6 backdrop-blur">
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-neutral-900/60 to-transparent px-8 py-10 text-center shadow-2xl">
             <div className="mb-3 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-primary">
@@ -143,46 +154,6 @@ export default function OCRToolPage() {
           </div>
 
           <div className="flex flex-1 flex-col gap-4 overflow-hidden">
-            <div className="grid shrink-0 grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-5">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">功能亮点</h2>
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  {features.map((feature, index) => (
-                    <li key={feature.text} className="flex items-start gap-2">
-                      <feature.icon className="h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>
-                        {index + 1}. {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">使用提示</h2>
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                </div>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  {usageTips.map((tip, index) => (
-                    <li key={tip} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>
-                        {index + 1}. {tip}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
             <div className="grid flex-1 min-h-0 grid-cols-[1.05fr,0.95fr] grid-rows-[260px_minmax(0,1fr)] gap-4">
               <Card className="row-span-1">
                 <CardContent className="flex h-full flex-col p-4">
@@ -257,7 +228,19 @@ export default function OCRToolPage() {
               <CardContent className="flex flex-1 flex-col p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <Label className="text-sm font-semibold">识别结果</Label>
-                  <FileText className="h-4 w-4 text-primary" />
+                  <button
+                    onClick={handleCopyResult}
+                    disabled={!result?.text}
+                    className={cn(
+                      "transition-colors rounded-md p-1",
+                      result?.text
+                        ? "text-primary hover:bg-primary/10 cursor-pointer"
+                        : "text-muted-foreground/40 cursor-not-allowed"
+                    )}
+                    title="复制结果"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
                 </div>
                 <Textarea
                   readOnly
@@ -293,6 +276,46 @@ export default function OCRToolPage() {
                 <Download className="mr-2 h-5 w-5" />
                 导出结果
               </Button>
+            </div>
+
+            <div className="grid shrink-0 grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">功能亮点</h2>
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <ul className="space-y-3 text-sm text-muted-foreground">
+                    {features.map((feature, index) => (
+                      <li key={feature.text} className="flex items-start gap-2">
+                        <feature.icon className="h-4 w-4 flex-shrink-0 text-primary" />
+                        <span>
+                          {index + 1}. {feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">使用提示</h2>
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <ul className="space-y-3 text-sm text-muted-foreground">
+                    {usageTips.map((tip, index) => (
+                      <li key={tip} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />
+                        <span>
+                          {index + 1}. {tip}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

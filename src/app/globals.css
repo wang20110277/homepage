@@ -1,6 +1,25 @@
 @import "tailwindcss";
 
+/* Local Geist Fonts */
+@font-face {
+  font-family: 'Geist';
+  src: url('./fonts/GeistVF.woff') format('woff');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('./fonts/GeistMonoVF.woff') format('woff');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
+  --font-geist-sans: 'Geist', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
   --background: oklch(1.0000 0 0);
   --foreground: oklch(0.1884 0.0128 248.5103);
   --card: oklch(0.9784 0.0011 197.1387);
@@ -33,9 +52,9 @@
   --sidebar-accent-foreground: oklch(0.6723 0.1606 244.9955);
   --sidebar-border: oklch(0.9271 0.0101 238.5177);
   --sidebar-ring: oklch(0.6818 0.1584 243.3540);
-  --font-sans: Open Sans, sans-serif;
+  --font-sans: var(--font-geist-sans);
   --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
+  --font-mono: var(--font-geist-mono);
   --radius: 1.3rem;
   --shadow-x: 0px;
   --shadow-y: 2px;
@@ -88,9 +107,9 @@
   --sidebar-accent-foreground: oklch(0.6692 0.1607 245.0110);
   --sidebar-border: oklch(0.3795 0.0220 240.5943);
   --sidebar-ring: oklch(0.6818 0.1584 243.3540);
-  --font-sans: Open Sans, sans-serif;
+  --font-sans: var(--font-geist-sans);
   --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
+  --font-mono: var(--font-geist-mono);
   --radius: 1.3rem;
   --shadow-x: 0px;
   --shadow-y: 2px;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/auth/user-profile";
-import { LayoutDashboard, Presentation, ScanText, Building2, Menu } from "lucide-react";
+import { LayoutDashboard, Presentation, FolderOpen, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -21,20 +21,22 @@ const navigation = [
     icon: Presentation,
   },
   {
-    name: "OCR识别",
-    href: "/tools/ocr",
-    icon: ScanText,
-  },
-  {
-    name: "天眼查",
-    href: "/tools/tianyancha",
-    icon: Building2,
+    name: "我的演示文稿",
+    href: "/tools/my-presentations",
+    icon: FolderOpen,
   },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const isHomePage = pathname === "/home";
+
+  // Check if current page is PPT-related
+  const isPPTPage = pathname?.startsWith("/tools/ppt-generator") ||
+                    pathname?.startsWith("/tools/my-presentations");
+
+  // Only show PPT navigation items on PPT pages
+  const shouldShowPPTNav = !isHomePage && isPPTPage;
 
   if (pathname === "/") {
     return null;
@@ -57,8 +59,8 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          {/* Desktop Navigation - Hide on home page */}
-          {!isHomePage && (
+          {/* Desktop Navigation - Only show on PPT pages */}
+          {shouldShowPPTNav && (
             <nav className="hidden md:flex items-center gap-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -88,8 +90,8 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <UserProfile />
 
-          {/* Mobile Menu - Hide on home page */}
-          {!isHomePage && (
+          {/* Mobile Menu - Only show on PPT pages */}
+          {shouldShowPPTNav && (
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon">

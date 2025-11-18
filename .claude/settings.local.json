@@ -19,7 +19,10 @@
       "Bash(pnpm run lint)",
       "Bash(curl:*)",
       "Bash(Remove-Item -Recurse -Force D:Claudehomepage.next)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(mkdir:*)",
+      "WebFetch(domain:docs.presenton.ai)",
+      "Bash(pnpm list:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

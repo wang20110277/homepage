@@ -493,6 +493,32 @@ export async function uploadFile(
 }
 
 /**
+ * Get all user presentations
+ */
+export async function getAllPresentations(
+  traceId?: string
+): Promise<PresentationData[]> {
+  const logTraceId = traceId || "no-trace";
+
+  logInfo(logTraceId, "Fetching all presentations");
+
+  try {
+    const response = await presentonClient.get<PresentationData[]>(
+      "/api/v1/ppt/presentation/all",
+      { traceId }
+    );
+
+    logInfo(logTraceId, "All presentations fetched successfully", {
+      count: response.length,
+    });
+
+    return response;
+  } catch (error) {
+    return handlePresentonError(error, "presentations fetch", logTraceId);
+  }
+}
+
+/**
  * Get presentation by ID
  */
 export async function getPresentationById(
@@ -528,8 +554,17 @@ export async function exportPresentation(
   logInfo(logTraceId, "Exporting presentation", { presentationId, format });
 
   try {
-    const response = await presentonClient.post<{ download_url: string }>(
-      "/api/v1/ppt/presentation/export",
+    // According to Presenton API docs:
+    // POST /api/v1/ppt/presentation/export
+    // Body: { id: string (UUID), export_as: "pptx" | "pdf" }
+    // Response: { presentation_id, path, edit_path, credits_consumed }
+    const response = await presentonClient.post<{
+      presentation_id: string;
+      path: string;
+      edit_path: string;
+      credits_consumed: number;
+    }>(
+      `/api/v1/ppt/presentation/export`,
       {
         id: presentationId,
         export_as: format,
@@ -537,11 +572,24 @@ export async function exportPresentation(
       { traceId }
     );
 
+    // The path from API might be relative (e.g., /static/user_data/xxx/file.pptx)
+    // Need to prepend the Presenton base URL if it's a relative path
+    let downloadUrl = response.path;
+    if (downloadUrl && !downloadUrl.startsWith("http")) {
+      // Remove leading slash if present to avoid double slashes
+      const relativePath = downloadUrl.startsWith("/")
+        ? downloadUrl
+        : `/${downloadUrl}`;
+      downloadUrl = `${PRESENTON_BASE_URL}${relativePath}`;
+    }
+
     logInfo(logTraceId, "Presentation exported successfully", {
-      downloadUrl: response.download_url,
+      downloadUrl,
+      creditsConsumed: response.credits_consumed,
     });
 
-    return response;
+    // Return the full URL as download_url
+    return { download_url: downloadUrl };
   } catch (error) {
     return handlePresentonError(error, "presentation export", logTraceId);
   }
