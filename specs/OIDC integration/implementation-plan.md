@@ -1490,7 +1490,7 @@ Implement role-based access control, protect API routes and pages.
 
 ### 5.1 Create RBAC Utility Functions
 
-- [ ] Create new file `src/lib/rbac.ts`:
+- [x] Create new file `src/lib/rbac.ts`:
 
 ```typescript
 // src/lib/rbac.ts
@@ -1587,7 +1587,7 @@ export async function checkToolAccess(
 
 ### 5.2 Create Example API Routes (with permission protection)
 
-- [ ] Create `src/app/api/users/me/route.ts`:
+- [x] Create `src/app/api/users/me/route.ts`:
 
 ```typescript
 // src/app/api/users/me/route.ts
@@ -1611,7 +1611,7 @@ export const GET = withAuth(async (req, ctx) => {
 });
 ```
 
-- [ ] Create `src/app/api/users/me/roles/route.ts`:
+- [x] Create `src/app/api/users/me/roles/route.ts`:
 
 ```typescript
 // src/app/api/users/me/roles/route.ts
@@ -1628,7 +1628,7 @@ export const GET = withAuth(async (req, ctx) => {
 });
 ```
 
-- [ ] Create `src/app/api/tenants/current/route.ts`:
+- [x] Create `src/app/api/tenants/current/route.ts`:
 
 ```typescript
 // src/app/api/tenants/current/route.ts
@@ -1642,7 +1642,7 @@ export const GET = withAuth(async (req, ctx) => {
 });
 ```
 
-- [ ] Create `src/app/api/tenants/current/features/route.ts`:
+- [x] Create `src/app/api/tenants/current/features/route.ts`:
 
 ```typescript
 // src/app/api/tenants/current/features/route.ts
@@ -1686,7 +1686,7 @@ export const PUT = withAuth(
 
 ### 5.3 Protect Tool Pages
 
-- [ ] For each tool page (`src/app/tools/ppt-generator/page.tsx`, `ocr/page.tsx`, `tianyancha/page.tsx`), add at the top:
+- [x] For each tool page (`src/app/tools/ppt-generator/page.tsx`, `ocr/page.tsx`, `tianyancha/page.tsx`), add at the top:
 
 ```typescript
 import { redirect } from "next/navigation";
@@ -1716,12 +1716,12 @@ export default async function ToolPage() {
 
 ### 5.4 Stage Validation
 
-- [ ] Login and visit `/api/users/me`
-- [ ] Should return user info and roles
+- [x] Login and visit `/api/users/me`
+- [x] Should return user info and roles
 
-- [ ] Visit protected tool pages
-- [ ] Should show or deny access based on roles and tenant config
-- [ ] Call `/api/tenants/current/features` GET/PUT as admin and confirm mutations change dashboard state immediately (403 for non-admins)
+- [x] Visit protected tool pages
+- [x] Should show or deny access based on roles and tenant config
+- [x] Call `/api/tenants/current/features` GET/PUT as admin and confirm mutations change dashboard state immediately (403 for non-admins)
 
 ---
 

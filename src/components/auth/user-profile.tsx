@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSession, signOutFromOIDC } from "@/lib/auth-client";
 import {
   Avatar,
@@ -17,16 +18,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut, Settings2, ShieldCheck } from "lucide-react";
 
 interface ProfileDetails {
   roles: string[];
   tools: Array<{ id: string; enabled: boolean; reason?: string }>;
+  tenantName?: string;
 }
 
-interface ProfileApiResponse {
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    message?: string;
+  };
+}
+
+interface ProfilePayload {
   user?: {
     roles?: string[];
+  };
+  tenant?: {
+    name?: string;
   };
   toolAccess?: Array<{
     tool: string;
@@ -55,9 +68,14 @@ export function UserProfile() {
         if (!res.ok) {
           throw new Error("Failed to load profile");
         }
-        const data = (await res.json()) as ProfileApiResponse;
-        const normalizedTools = Array.isArray(data.toolAccess)
-          ? data.toolAccess.map((item) => ({
+
+        const payload = (await res.json()) as ApiResponse<ProfilePayload>;
+        if (!payload.success || !payload.data) {
+          throw new Error(payload.error?.message || "Failed to load profile");
+        }
+
+        const normalizedTools = Array.isArray(payload.data.toolAccess)
+          ? payload.data.toolAccess.map((item) => ({
               id: item.tool,
               enabled: Boolean(item.access?.allowed),
               reason: item.access?.reason,
@@ -65,9 +83,13 @@ export function UserProfile() {
           : [];
 
         setDetails({
-          roles: data.user?.roles || [],
+          roles: payload.data.user?.roles || [],
+          tenantName: payload.data.tenant?.name || undefined,
           tools: normalizedTools,
         });
+      } catch (error) {
+        console.error("Failed to load profile details", error);
+        setDetails(null);
       } finally {
         setIsLoadingDetails(false);
       }
@@ -76,10 +98,8 @@ export function UserProfile() {
     fetchDetails();
   }, [session?.user]);
 
-  const availableTools = useMemo(
-    () => details?.tools.filter((tool) => tool.enabled) || [],
-    [details]
-  );
+  const assignedTools = details?.tools ?? [];
+  const hasAdminRole = details?.roles?.includes("admin") ?? false;
 
   if (isPending) {
     return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
@@ -127,6 +147,11 @@ export function UserProfile() {
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
+            {details?.tenantName ? (
+              <p className="text-[11px] text-muted-foreground">
+                Tenant: {details.tenantName}
+              </p>
+            ) : null}
           </div>
           {details?.roles?.length ? (
             <div className="flex flex-wrap gap-1">
@@ -145,23 +170,56 @@ export function UserProfile() {
           className="flex-col items-start"
         >
           <p className="text-sm font-medium">Tool Access</p>
-          <div className="mt-1 space-y-1">
+          <div className="mt-1 space-y-1 w-full">
             {isLoadingDetails && (
-              <p className="text-xs text-muted-foreground">Loading…</p>
+              <p className="text-xs text-muted-foreground">Loading...</p>
             )}
-            {!isLoadingDetails && availableTools.length === 0 && (
+            {!isLoadingDetails && assignedTools.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                No tools assigned
+                Tool access data is not available yet
               </p>
             )}
-            {!isLoadingDetails &&
-              availableTools.map((tool) => (
-                <Badge key={tool.id} variant="outline" className="text-xs">
-                  {tool.id}
-                </Badge>
-              ))}
+            {!isLoadingDetails && assignedTools.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {assignedTools.map((tool) => (
+                  <Badge
+                    key={tool.id}
+                    variant={tool.enabled ? "outline" : "destructive"}
+                    className="text-[11px]"
+                  >
+                    {tool.id}
+                    {!tool.enabled && tool.reason
+                      ? ` (${tool.reason})`
+                      : ""}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </DropdownMenuItem>
+        {hasAdminRole && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link
+                href="/dashboard/tenant-settings"
+                className="flex w-full items-center text-sm font-semibold text-primary focus:outline-none"
+              >
+                <Settings2 className="mr-2 h-4 w-4" />
+                Manage tenant features
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link
+                href="/dashboard/user-access"
+                className="flex w-full items-center text-sm font-semibold text-primary focus:outline-none"
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Manage user roles
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}

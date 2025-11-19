@@ -19,20 +19,26 @@ interface LogoutResponse {
 }
 
 export async function signOutFromOIDC() {
-  const response = await fetch("/api/auth/logout", { method: "POST" });
+  let providerLogoutUrl: string | undefined;
+  let fallbackRedirect = "/login";
 
-  if (!response.ok) {
-    throw new Error("Failed to sign out from OIDC provider");
+  try {
+    const response = await fetch("/api/auth/logout", { method: "POST" });
+    if (response.ok) {
+      const payload = (await response.json()) as LogoutResponse;
+      providerLogoutUrl = payload.providerLogoutUrl;
+      fallbackRedirect = payload.postLogoutRedirect ?? fallbackRedirect;
+    } else {
+      console.warn("Failed to retrieve provider logout URL");
+    }
+  } catch (error) {
+    console.error("Error while calling logout endpoint", error);
   }
-
-  const payload = (await response.json()) as LogoutResponse;
 
   await signOut();
 
-  const fallbackRedirect = payload.postLogoutRedirect ?? "/login";
-
-  if (payload.providerLogoutUrl) {
-    window.location.href = payload.providerLogoutUrl;
+  if (providerLogoutUrl) {
+    window.location.href = providerLogoutUrl;
   } else {
     window.location.href = fallbackRedirect;
   }

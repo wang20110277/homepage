@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import type { User, ApiResponse } from "./types";
+import type { User, ApiResponse, TenantContext } from "./types";
 import { unauthorized, forbidden } from "./api-response";
 import { getTraceId } from "./trace";
 import { logInfo, logWarn } from "./logger";
@@ -33,6 +33,7 @@ export async function getUserFromRequest(
           role: true,
         },
       },
+      tenant: true,
     },
   });
 
@@ -57,6 +58,7 @@ export async function getUserFromRequest(
               role: true,
             },
           },
+          tenant: true,
         },
       });
 
@@ -66,11 +68,25 @@ export async function getUserFromRequest(
     }
   }
 
+  const tenantContext: TenantContext | undefined = userRecord.tenant
+    ? {
+        id: userRecord.tenant.id,
+        name: userRecord.tenant.name ?? undefined,
+        slug: userRecord.tenant.slug ?? undefined,
+        features: (userRecord.tenant.features ??
+          {}) as Record<string, boolean>,
+      }
+    : undefined;
+
   return {
     id: userRecord.id,
     email: userRecord.email ?? undefined,
     name: userRecord.name ?? undefined,
-    roles: userRecord.userRoles.map((assignment) => assignment.role.name),
+    roles: userRecord.userRoles
+      .map((assignment) => assignment.role?.name)
+      .filter((roleName): roleName is string => Boolean(roleName)),
+    tenantId: userRecord.tenantId ?? undefined,
+    tenant: tenantContext,
   };
 }
 
@@ -83,9 +99,15 @@ export function hasRequiredRoles(user: User, requiredRoles: string[]): boolean {
   return requiredRoles.some((role) => userRoles.includes(role));
 }
 
+export interface BffContext {
+  user?: User;
+  tenant?: TenantContext;
+  traceId: string;
+}
+
 export type BffRouteHandler = (
   request: NextRequest,
-  context: { user?: User; traceId: string }
+  context: BffContext
 ) => Promise<NextResponse<ApiResponse>>;
 
 export function withAuth(
@@ -132,7 +154,7 @@ export function withAuth(
       userId: user.id,
     });
 
-    return handler(request, { user, traceId });
+    return handler(request, { user, tenant: user.tenant, traceId });
   };
 }
 
@@ -156,6 +178,10 @@ export function withOptionalAuth(
       });
     }
 
-    return handler(request, { user: user || undefined, traceId });
+    return handler(request, {
+      user: user || undefined,
+      tenant: user?.tenant,
+      traceId,
+    });
   };
 }

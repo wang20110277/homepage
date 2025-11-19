@@ -24,6 +24,56 @@ interface AuthorizationSnapshot {
   permissions: Set<string>;
 }
 
+function toPermissionKey(resource: string, action: string) {
+  return `${resource}:${action}`;
+}
+
+export async function getUserRoles(userId: string): Promise<string[]> {
+  const userRoles = await db.query.userRoles.findMany({
+    where: eq(schema.userRoles.userId, userId),
+    with: {
+      role: true,
+    },
+  });
+
+  return userRoles
+    .map((assignment) => assignment.role?.name)
+    .filter((roleName): roleName is string => Boolean(roleName));
+}
+
+export async function hasRole(
+  userId: string,
+  roleName: string
+): Promise<boolean> {
+  const roles = await getUserRoles(userId);
+  return roles.includes(roleName);
+}
+
+export async function hasAnyRole(
+  userId: string,
+  roleNames: string[]
+): Promise<boolean> {
+  if (!roleNames.length) {
+    return false;
+  }
+
+  const roles = await getUserRoles(userId);
+  return roleNames.some((roleName) => roles.includes(roleName));
+}
+
+export async function hasPermission(
+  userId: string,
+  resource: string,
+  action: string
+): Promise<boolean> {
+  const snapshot = await loadAuthorizationSnapshot(userId);
+  if (!snapshot) {
+    return false;
+  }
+
+  return snapshot.permissions.has(toPermissionKey(resource, action));
+}
+
 async function loadAuthorizationSnapshot(
   userId: string
 ): Promise<AuthorizationSnapshot | null> {
@@ -42,11 +92,11 @@ async function loadAuthorizationSnapshot(
       userRoles: {
         columns: {},
         with: {
-          role: {
-            columns: { id: true },
-            with: {
-              permissions: {
-                columns: { permissionId: true },
+      role: {
+        columns: { id: true },
+        with: {
+          permissions: {
+            columns: { permissionId: true },
                 with: {
                   permission: true,
                 },
@@ -73,7 +123,7 @@ async function loadAuthorizationSnapshot(
     for (const rolePermission of rolePermissions) {
       const perm = rolePermission.permission;
       if (perm) {
-        permissions.add(`${perm.resource}:${perm.action}`);
+        permissions.add(toPermissionKey(perm.resource, perm.action));
       }
     }
   }
@@ -99,8 +149,7 @@ function evaluateAccess(
   }
 
   const required = TOOL_PERMISSION_MAP[toolId];
-  const key = `${required.resource}:${required.action}`;
-  if (!snapshot.permissions.has(key)) {
+  if (!snapshot.permissions.has(toPermissionKey(required.resource, required.action))) {
     return { allowed: false, reason: "Role required" };
   }
 

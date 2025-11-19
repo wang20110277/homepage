@@ -25,11 +25,20 @@ export interface ApiError {
 /**
  * User information extracted from authentication
  */
+export interface TenantContext {
+  id: string;
+  name?: string;
+  slug?: string;
+  features?: Record<string, boolean>;
+}
+
 export interface User {
   id: string;
   email?: string;
   name?: string;
   roles?: string[];
+  tenantId?: string;
+  tenant?: TenantContext;
 }
 
 /**

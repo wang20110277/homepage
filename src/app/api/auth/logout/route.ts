@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { ok } from "@/lib/core/api-response";
+import { NextRequest } from "next/server";
+import { ok, unauthorized, serviceUnavailable } from "@/lib/core/api-response";
 import { auth } from "@/lib/auth";
-import { withAuth } from "@/lib/core/bff-auth";
+import { getTraceId } from "@/lib/core/trace";
+import { logError, logInfo, logWarn } from "@/lib/core/logger";
 
 function getBaseRedirectUrl() {
   return (
@@ -32,14 +33,32 @@ function getProviderLogoutUrl() {
   )}`;
 }
 
-export const POST = withAuth(async (req, { traceId }) => {
-  await auth.api.signOut({ headers: req.headers });
+export const POST = async (request: NextRequest) => {
+  const traceId = getTraceId(request);
+  const sessionCookie = request.cookies.get("better-auth.session_token");
 
-  return ok(
-    {
-      providerLogoutUrl: getProviderLogoutUrl(),
-      postLogoutRedirect: "/login",
-    },
-    traceId
-  );
-});
+  if (!sessionCookie) {
+    logWarn(traceId, "Logout requested without session cookie");
+    return unauthorized("Authentication required", traceId);
+  }
+
+  try {
+    await auth.api.signOut({ headers: request.headers });
+
+    logInfo(traceId, "User signed out");
+
+    return ok(
+      {
+        providerLogoutUrl: getProviderLogoutUrl(),
+        postLogoutRedirect: "/login",
+      },
+      traceId
+    );
+  } catch (error) {
+    logError(traceId, "Failed to sign out user", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return serviceUnavailable("auth", "Unable to complete logout", traceId);
+  }
+};
