@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
+import { QueryProvider } from "@/components/query-provider";
 
 export const metadata: Metadata = {
   title: "工作台系统 - 集成多种实用工具的一站式工作平台",
@@ -27,18 +28,20 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative min-h-screen overflow-hidden bg-neutral-950">
-            <div className="pointer-events-none absolute inset-0">
-              <StarsBackground className="opacity-60" />
-              <ShootingStars />
+          <QueryProvider>
+            <div className="relative min-h-screen overflow-hidden bg-neutral-950">
+              <div className="pointer-events-none absolute inset-0">
+                <StarsBackground className="opacity-60" />
+                <ShootingStars />
+              </div>
+              <div className="relative z-10 flex min-h-screen flex-col">
+                <SiteHeader />
+                <div className="flex-1">{children}</div>
+                <SiteFooter />
+              </div>
             </div>
-            <div className="relative z-10 flex min-h-screen flex-col">
-              <SiteHeader />
-              <div className="flex-1">{children}</div>
-              <SiteFooter />
-            </div>
-          </div>
-          <Toaster richColors />
+            <Toaster richColors />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

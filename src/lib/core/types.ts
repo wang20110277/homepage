@@ -59,6 +59,7 @@ export interface HttpRequestOptions {
   body?: unknown;
   timeout?: number;
   traceId?: string;
+  onResponse?: (meta: { statusCode: number }) => void;
 }
 
 /**

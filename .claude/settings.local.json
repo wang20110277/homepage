@@ -22,7 +22,9 @@
       "Bash(git restore:*)",
       "Bash(mkdir:*)",
       "WebFetch(domain:docs.presenton.ai)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "WebSearch",
+      "WebFetch(domain:gpt.luckybruce.com)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

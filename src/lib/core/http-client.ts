@@ -56,6 +56,7 @@ export class HttpClient {
       body,
       timeout = this.defaultTimeout,
       traceId = generateTraceId(),
+      onResponse,
     } = options;
 
     const url = `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
@@ -104,6 +105,7 @@ export class HttpClient {
 
       // Log response
       if (response.ok) {
+        onResponse?.({ statusCode: response.status });
         logInfo(traceId, `HTTP ${method} ${url} completed`, {
           statusCode: response.status,
           elapsedMs: elapsedTime,
