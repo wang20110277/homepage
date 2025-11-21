@@ -20,7 +20,7 @@ interface LogoutResponse {
 
 export async function signOutFromOIDC() {
   let providerLogoutUrl: string | undefined;
-  let fallbackRedirect = "/login";
+  let fallbackRedirect = "/";
 
   try {
     const response = await fetch("/api/auth/logout", { method: "POST" });

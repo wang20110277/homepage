@@ -1,7 +1,6 @@
 import { ok } from "@/lib/core/api-response";
 import { withAuth } from "@/lib/core/bff-auth";
 import { db } from "@/lib/db";
-import * as schema from "@/lib/schema";
 
 export const GET = withAuth(
   async (_req, { traceId }) => {

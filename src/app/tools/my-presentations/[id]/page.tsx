@@ -221,10 +221,15 @@ export default function PresentationPreviewPage() {
                 {bulletPoints.map((point, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     {point.icon?.__icon_url__ ? (
-                      <img
-                        src={getImageUrl(point.icon.__icon_url__) || ""}
+                      <Image
+                        src={
+                          getImageUrl(point.icon.__icon_url__) ??
+                          point.icon.__icon_url__
+                        }
                         alt=""
-                        className="mt-1 h-5 w-5 flex-shrink-0"
+                        width={20}
+                        height={20}
+                        className="mt-1 h-5 w-5 flex-shrink-0 object-contain"
                       />
                     ) : (
                       <span className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
@@ -292,10 +297,13 @@ export default function PresentationPreviewPage() {
           {image?.__image_url__ && (
             <div className="flex items-center justify-center lg:w-1/2">
               <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-                <img
-                  src={getImageUrl(image.__image_url__) || ""}
+                <Image
+                  src={
+                    getImageUrl(image.__image_url__) ?? image.__image_url__
+                  }
                   alt={title}
-                  className="h-full w-full object-contain"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>

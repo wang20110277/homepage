@@ -61,13 +61,12 @@ async function handlePut(
   return ok({ roles: requestedRoles }, traceId);
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
+  const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+  const userId = segments.length >= 2 ? segments[segments.length - 2] : "";
   const handler = withAuth(
     async (req, { traceId }) => {
-      return handlePut(req, params.id, traceId);
+      return handlePut(req, userId, traceId);
     },
     { requiredRoles: ["admin"] }
   );

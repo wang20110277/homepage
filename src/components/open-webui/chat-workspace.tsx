@@ -272,9 +272,9 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-background/70 p-6 text-center">
         <Sparkles className="mb-4 h-10 w-10 text-primary" />
-        <p className="text-lg font-semibold">Select a chat to begin</p>
+        <p className="text-lg font-semibold">选择一个对话开始</p>
         <p className="text-sm text-muted-foreground">
-          Choose an existing conversation or create a new one to start chatting.
+          选择现有对话或创建新对话开始聊天
         </p>
       </div>
     );
@@ -285,10 +285,10 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
       <div className="flex flex-wrap items-center gap-3 border-b border-white/5 px-5 py-3">
         <div className="flex flex-1 flex-col">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Conversation
+            对话
           </p>
           <p className="text-lg font-semibold">
-            {chatQuery.data?.title || "Untitled chat"}
+            {chatQuery.data?.title || "未命名对话"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
             disabled={modelsQuery.isLoading || !modelsQuery.data?.length || isStreaming}
           >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Choose model" />
+              <SelectValue placeholder="选择模型" />
             </SelectTrigger>
             <SelectContent>
               {modelsQuery.data?.map((model) => (
@@ -314,7 +314,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
           </Select>
           {isStreaming ? (
             <Button variant="outline" onClick={handleStop} size="sm">
-              <StopCircle className="mr-2 h-4 w-4" /> Stop
+              <StopCircle className="mr-2 h-4 w-4" /> 停止
             </Button>
           ) : null}
         </div>
@@ -324,7 +324,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         <div className="space-y-4">
           {chatQuery.isLoading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading chat...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 加载对话中...
             </div>
           ) : chatQuery.data?.messages.length ? (
             chatQuery.data.messages.map((message) => (
@@ -332,7 +332,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
             ))
           ) : (
             <div className="rounded-xl border border-dashed border-white/10 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-              No messages yet. Ask the assistant anything to get started.
+              还没有消息。向助手提问以开始对话。
             </div>
           )}
           <div ref={endRef} />
@@ -342,12 +342,12 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
       <div className="border-t border-white/5 bg-background/90 px-5 py-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Wand2 className="h-3.5 w-3.5" />
-          Logged in as {userName}. Models available: {modelsQuery.data?.length ?? 0}
+          登录为 {userName}。可用模型: {modelsQuery.data?.length ?? 0}
         </div>
         <div className="mt-3 rounded-xl border border-white/10 bg-muted/20">
           <Textarea
             rows={3}
-            placeholder="Type your message and press Enter"
+            placeholder="输入消息并按 Enter 发送"
             className="border-none bg-transparent"
             value={composerValue}
             onChange={(event) => setComposerValue(event.target.value)}
@@ -356,7 +356,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
           />
           <div className="flex items-center justify-between border-t border-white/5 px-3 py-2">
             <p className="text-xs text-muted-foreground">
-              Shift + Enter for newline
+              Shift + Enter 换行
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -370,7 +370,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
                 ) : (
                   <Send className="mr-2 h-4 w-4" />
                 )}
-                Send
+                发送
               </Button>
             </div>
           </div>

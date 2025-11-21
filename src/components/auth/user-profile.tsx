@@ -149,7 +149,7 @@ export function UserProfile() {
             </p>
             {details?.tenantName ? (
               <p className="text-[11px] text-muted-foreground">
-                Tenant: {details.tenantName}
+                租户: {details.tenantName}
               </p>
             ) : null}
           </div>
@@ -169,14 +169,14 @@ export function UserProfile() {
           disabled={isLoadingDetails}
           className="flex-col items-start"
         >
-          <p className="text-sm font-medium">Tool Access</p>
+          <p className="text-sm font-medium">工具访问权限</p>
           <div className="mt-1 space-y-1 w-full">
             {isLoadingDetails && (
-              <p className="text-xs text-muted-foreground">Loading...</p>
+              <p className="text-xs text-muted-foreground">加载中...</p>
             )}
             {!isLoadingDetails && assignedTools.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Tool access data is not available yet
+                工具访问数据暂不可用
               </p>
             )}
             {!isLoadingDetails && assignedTools.length > 0 && (
@@ -206,7 +206,7 @@ export function UserProfile() {
                 className="flex w-full items-center text-sm font-semibold text-primary focus:outline-none"
               >
                 <Settings2 className="mr-2 h-4 w-4" />
-                Manage tenant features
+                管理租户功能
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="cursor-pointer">
@@ -215,7 +215,7 @@ export function UserProfile() {
                 className="flex w-full items-center text-sm font-semibold text-primary focus:outline-none"
               >
                 <ShieldCheck className="mr-2 h-4 w-4" />
-                Manage user roles
+                管理用户角色
               </Link>
             </DropdownMenuItem>
           </>
@@ -227,7 +227,7 @@ export function UserProfile() {
           className="cursor-pointer text-sm font-semibold text-primary focus:bg-primary/10 focus:text-primary"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          {isLoggingOut ? "Signing out..." : "Sign out"}
+          {isLoggingOut ? "登出中..." : "登出"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

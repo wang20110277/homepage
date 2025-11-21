@@ -14,11 +14,13 @@ export const CometCard = ({
   translateDepth = 20,
   className,
   children,
+  disableEffects = false,
 }: {
   rotateDepth?: number;
   translateDepth?: number;
   className?: string;
   children: React.ReactNode;
+  disableEffects?: boolean;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -77,6 +79,16 @@ export const CometCard = ({
     x.set(0);
     y.set(0);
   };
+
+  if (disableEffects) {
+    return (
+      <div className={cn("rounded-2xl", className)}>
+        <div className="relative rounded-2xl">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("perspective-distant transform-3d", className)}>

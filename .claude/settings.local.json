@@ -24,7 +24,19 @@
       "WebFetch(domain:docs.presenton.ai)",
       "Bash(pnpm list:*)",
       "WebSearch",
-      "WebFetch(domain:gpt.luckybruce.com)"
+      "WebFetch(domain:gpt.luckybruce.com)",
+      "Bash(Remove-Item -Recurse -Force .next 2)",
+      "Bash($null)",
+      "Bash(test:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(npm install)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(echo:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
@@ -32,6 +44,6 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "context7"
+    "shadcn"
   ]
 }

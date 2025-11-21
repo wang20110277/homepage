@@ -12,20 +12,20 @@ const tools: Array<{
 }> = [
   {
     id: "ppt",
-    name: "PPT Generator",
-    description: "Quickly build enterprise-ready decks.",
+    name: "PPT 生成器",
+    description: "快速构建企业级演示文稿",
     href: "/tools/ppt-generator",
   },
   {
     id: "ocr",
-    name: "OCR Recognition",
-    description: "Extract text from scanned documents.",
+    name: "OCR 识别",
+    description: "从扫描文档中提取文字",
     href: "/tools/ocr",
   },
   {
     id: "tianyancha",
-    name: "Tianyancha Lookup",
-    description: "Company intelligence and background checks.",
+    name: "天眼查",
+    description: "企业信息查询和背景调查",
     href: "/tools/tianyancha",
   },
 ];
@@ -47,9 +47,9 @@ export default async function HomePage() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-6 py-6">
+    <main className="w-full h-full">
       <OpenWebuiHomeShell
-        userName={session.user.name ?? "team member"}
+        userName={session.user.name ?? "成员"}
         tools={toolStatuses}
       />
     </main>

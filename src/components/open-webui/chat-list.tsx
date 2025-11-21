@@ -198,10 +198,10 @@ export function ChatListPanel() {
   }, [chatQuery.data, search]);
 
   const busyMessage = (() => {
-    if (createMutation.isPending) return "Creating chat...";
-    if (duplicateMutation.isPending) return "Duplicating chat...";
-    if (deleteMutation.isPending) return "Deleting chat...";
-    return `${filteredChats.length} chats total`;
+    if (createMutation.isPending) return "创建对话中...";
+    if (duplicateMutation.isPending) return "复制对话中...";
+    if (deleteMutation.isPending) return "删除对话中...";
+    return `共 ${filteredChats.length} 个对话`;
   })();
 
   const handleCreate = () => {
@@ -226,9 +226,9 @@ export function ChatListPanel() {
       <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Conversations
+            对话
           </p>
-          <p className="text-lg font-semibold">Chat history</p>
+          <p className="text-lg font-semibold">聊天历史</p>
         </div>
         <Button
           size="icon"
@@ -254,7 +254,7 @@ export function ChatListPanel() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search conversations"
+            placeholder="搜索对话"
             className="border-none bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0"
           />
         </div>
@@ -263,11 +263,11 @@ export function ChatListPanel() {
       <ScrollArea className="flex-1">
         {chatQuery.isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading chats...
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 加载对话中...
           </div>
         ) : filteredChats.length === 0 ? (
           <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-            No chats yet. Start by creating a new conversation.
+            还没有对话。点击上方按钮创建新对话。
           </div>
         ) : (
           <ul className="divide-y divide-white/5">
@@ -295,7 +295,7 @@ export function ChatListPanel() {
                         </p>
                       </div>
                       <p className="line-clamp-1 text-xs text-muted-foreground">
-                        {chat.lastMessagePreview || "No messages yet"}
+                        {chat.lastMessagePreview || "暂无消息"}
                       </p>
                       <p className="text-xs text-muted-foreground/70">
                         {chat.updatedAt
@@ -319,7 +319,7 @@ export function ChatListPanel() {
                             setRenameValue(chat.title);
                           }}
                         >
-                          Rename
+                          重命名
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={async (event) => {
@@ -327,7 +327,7 @@ export function ChatListPanel() {
                             await duplicateMutation.mutateAsync(chat.id);
                           }}
                         >
-                          Duplicate
+                          复制
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
@@ -336,7 +336,7 @@ export function ChatListPanel() {
                             deleteMutation.mutate(chat.id);
                           }}
                         >
-                          Delete
+                          删除
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -355,10 +355,10 @@ export function ChatListPanel() {
       <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => !open && setRenameTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename chat</DialogTitle>
+            <DialogTitle>重命名对话</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="chat-name">Chat name</Label>
+            <Label htmlFor="chat-name">对话名称</Label>
             <Input
               id="chat-name"
               value={renameValue}
@@ -367,13 +367,13 @@ export function ChatListPanel() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRenameTarget(null)}>
-              Cancel
+              取消
             </Button>
             <Button onClick={handleRenameSubmit} disabled={renameMutation.isPending}>
               {renameMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Save changes
+              保存
             </Button>
           </DialogFooter>
         </DialogContent>

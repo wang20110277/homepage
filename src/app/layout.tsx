@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-background text-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -29,12 +29,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <div className="relative min-h-screen overflow-hidden bg-neutral-950">
-              <div className="pointer-events-none absolute inset-0">
+            <div className="relative min-h-screen overflow-hidden">
+              <div className="pointer-events-none absolute inset-0 bg-background/95">
                 <StarsBackground className="opacity-60" />
                 <ShootingStars />
               </div>
-              <div className="relative z-10 flex min-h-screen flex-col">
+              <div className="relative z-10 flex min-h-screen flex-col bg-transparent">
                 <SiteHeader />
                 <div className="flex-1">{children}</div>
                 <SiteFooter />

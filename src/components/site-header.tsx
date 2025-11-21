@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/auth/user-profile";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import { LayoutDashboard, Presentation, FolderOpen, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -88,6 +89,7 @@ export function SiteHeader() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
+          <ModeToggle />
           <UserProfile />
 
           {/* Mobile Menu - Only show on PPT pages */}
