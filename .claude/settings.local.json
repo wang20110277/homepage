@@ -40,7 +40,18 @@
       "Bash(cat:*)",
       "Bash(node --version:*)",
       "Bash(rm:*)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(chmod:*)",
+      "Bash(conda activate:*)",
+      "Bash(conda install:*)",
+      "Bash(bash -c \"source ~/.bashrc && conda env list | grep catbook\")",
+      "Bash(bash -c \"source ~/.bashrc && conda activate catbook && conda install -c conda-forge nginx -y\")",
+      "Bash(/home/ubuntu/anaconda3/envs/catbook/bin/conda install -c conda-forge nginx -y)",
+      "Bash(~/anaconda3/bin/conda install:*)",
+      "Bash(/home/ubuntu/anaconda3/envs/catbook/bin/nginx:*)",
+      "WebFetch(domain:openrouter.ai)",
+      "Bash(docker ps:*)",
+      "Bash(env)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

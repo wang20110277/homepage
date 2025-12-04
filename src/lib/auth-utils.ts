@@ -59,14 +59,29 @@ function mapEntraClaims(
 function mapAdfsClaims(
   claims: Record<string, unknown>
 ): StandardUserClaims {
+  // Extract email from various possible ADFS claim fields
+  // Priority: upn (most reliable in ADFS) > email > emailaddress > XML claims
+  const extractEmail = (claims: Record<string, unknown>): string => {
+    return (
+      (claims.upn as string) ||
+      (claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn"] as string) ||
+      (claims.email as string) ||
+      (claims.emailaddress as string) ||
+      (claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] as string) ||
+      ""
+    );
+  };
+
+  const email = extractEmail(claims);
+
   return {
-    id: (claims.sub as string) || (claims.upn as string),
-    name: (claims.name as string) || "",
-    email: (claims.email as string) || (claims.upn as string) || "",
+    id: (claims.sub as string) || (claims.unique_name as string) || (claims.upn as string),
+    name: (claims.name as string) || (claims.displayname as string) || (claims.unique_name as string) || "",
+    email,
     username:
-      (claims.upn as string) || (claims.email as string) || "",
+      (claims.unique_name as string) || (claims.upn as string) || email || "",
     provider: "adfs",
-    providerId: (claims.sub as string) || (claims.upn as string),
+    providerId: (claims.sub as string) || (claims.unique_name as string) || (claims.upn as string),
     roles: extractAdfsRoles(claims),
   };
 }
