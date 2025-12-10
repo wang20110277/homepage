@@ -7,6 +7,7 @@ import { logInfo, logWarn } from "./logger";
 import { auth, ensureUserClaimsSynced } from "@/lib/auth";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
+import { trySyncOpenWebuiApiKey } from "@/lib/services/sync-webui-user";
 
 export interface AuthOptions {
   requiredRoles?: string[];
@@ -66,6 +67,11 @@ export async function getUserFromRequest(
         return null;
       }
     }
+  }
+
+  // 独立检查：如果用户没有 OpenWebUI API key，尝试同步
+  if (!userRecord.openwebuiApiKey && userRecord.email) {
+    void trySyncOpenWebuiApiKey(userRecord.id, userRecord.email);
   }
 
   const tenantContext: TenantContext | undefined = userRecord.tenant

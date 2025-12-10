@@ -8,6 +8,7 @@ import { db } from "./db";
 import * as schema from "./schema";
 import { mapClaimsToUser, mergeClaimRoles } from "./auth-utils";
 import { ensureCoreAuthData } from "./rbac-init";
+import { trySyncOpenWebuiApiKey } from "./services/sync-webui-user";
 
 const activeProvider =
   (process.env.OIDC_PROVIDER === "adfs" ? "adfs" : "entra") as "entra" | "adfs";
@@ -210,7 +211,22 @@ async function syncUserFromLatestClaims(userId: string) {
 
   await syncRolesFromClaims(userId, standardClaims.roles);
 
+  // 同步 Open WebUI API Key（不阻塞登录流程）
+  const userRecord = await db.query.user.findFirst({
+    where: eq(schema.user.id, userId),
+    columns: { email: true },
+  });
+
+  if (userRecord?.email) {
+    void trySyncOpenWebuiApiKey(userId, userRecord.email);
+  }
+
   return true;
+}
+
+const authSecret = process.env.BETTER_AUTH_SECRET;
+if (!authSecret) {
+  throw new Error("BETTER_AUTH_SECRET is required but not configured in environment variables");
 }
 
 export const auth = betterAuth({
@@ -224,7 +240,7 @@ export const auth = betterAuth({
     process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET!,
+  secret: authSecret,
   session: {
     expiresIn: parseInt(process.env.SESSION_MAX_AGE || "28800", 10),
     updateAge: 3600,

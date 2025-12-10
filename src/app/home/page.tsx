@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { checkToolAccess, type ToolId } from "@/lib/rbac";
+import { getToolAccessSummary, type ToolId } from "@/lib/rbac";
 import { OpenWebuiHomeShell } from "@/components/open-webui/home-shell";
 
 const tools: Array<{
@@ -39,12 +39,16 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  const toolStatuses = await Promise.all(
-    tools.map(async (tool) => ({
-      ...tool,
-      access: await checkToolAccess(session.user.id, tool.id),
-    }))
+  // 优化：只查询一次数据库，获取所有工具的访问权限
+  const accessSummary = await getToolAccessSummary(session.user.id);
+  const accessMap = new Map(
+    accessSummary.map((item) => [item.tool, item.access])
   );
+
+  const toolStatuses = tools.map((tool) => ({
+    ...tool,
+    access: accessMap.get(tool.id) ?? { allowed: false, reason: "Unknown tool" },
+  }));
 
   return (
     <main className="w-full h-full">

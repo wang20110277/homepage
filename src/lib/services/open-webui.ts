@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { openWebuiClient } from "@/lib/openWebuiClient";
 import { getOpenWebuiAccessToken } from "@/lib/services/user-tokens";
+import { logInfo } from "@/lib/core/logger";
 import type {
   OpenWebuiChatSummary,
   OpenWebuiChatDetail,
@@ -35,6 +36,7 @@ const MessageSchema = z.object({
   content: z.any(),
   created_at: TimestampSchema,
   updated_at: TimestampSchema,
+  timestamp: TimestampSchema, // OpenWebUI uses 'timestamp' field
   metadata: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 
@@ -56,6 +58,14 @@ const ChatSummarySchema = z.object({
 const ChatDetailSchema = ChatSummarySchema.extend({
   system: z.string().optional().nullable(),
   messages: z.array(MessageSchema).optional().default([]),
+  chat: z.object({
+    messages: z.array(z.any()).optional().nullable(),
+    history: z.object({
+      messages: z.record(z.string(), z.any()).optional().nullable(),
+      currentId: z.string().optional().nullable(),
+    }).optional().nullable(),
+    models: z.array(z.string()).optional().nullable(),
+  }).optional().nullable(),
 });
 
 const ModelSchema = z.object({
@@ -122,11 +132,18 @@ function normalizeContent(value: unknown): string {
 }
 
 function normalizeMessage(raw: z.infer<typeof MessageSchema>): OpenWebuiMessage {
+  // OpenWebUI uses 'timestamp' (UNIX timestamp in seconds), fallback to 'created_at'
+  const createdAtValue = raw.timestamp
+    ? typeof raw.timestamp === 'number'
+      ? raw.timestamp * 1000 // Convert seconds to milliseconds
+      : raw.timestamp
+    : raw.created_at;
+
   return {
     id: raw.id,
     role: (raw.role as OpenWebuiMessage["role"]) ?? "assistant",
     content: normalizeContent(raw.content),
-    createdAt: coerceTimestamp(raw.created_at),
+    createdAt: coerceTimestamp(createdAtValue),
     updatedAt: coerceTimestamp(raw.updated_at),
     metadata: raw.metadata ?? undefined,
   };
@@ -163,9 +180,53 @@ function normalizeSummary(
 function normalizeDetail(
   raw: z.infer<typeof ChatDetailSchema>
 ): OpenWebuiChatDetail {
-  // Extract messages from chat.messages if available, otherwise use raw.messages
-  const messagesArray = raw.chat?.messages ?? raw.messages ?? [];
-  const messages = messagesArray.map(normalizeMessage);
+  // OpenWebUI uses chat.history.messages (tree structure) or chat.messages (flat array)
+  let messages: OpenWebuiMessage[] = [];
+
+  // Try to extract from history tree first (preferred)
+  if (raw.chat?.history?.messages && raw.chat?.history?.currentId) {
+    const historyMessages = raw.chat.history.messages;
+    const currentId = raw.chat.history.currentId;
+
+    // Traverse from currentId to root to build conversation chain
+    const messageChain: unknown[] = [];
+    let nodeId: string | null | undefined = currentId;
+
+    while (nodeId && historyMessages[nodeId]) {
+      const node: unknown = historyMessages[nodeId];
+      messageChain.unshift(node); // Add to beginning
+      nodeId = (node as { parentId?: string | null }).parentId;
+    }
+
+    // Convert to OpenWebuiMessage format
+    messages = messageChain
+      .filter((msg) => {
+        const typedMsg = msg as { role?: string; content?: unknown };
+        return typedMsg.role && typedMsg.content !== undefined;
+      })
+      .map((msg) => {
+        const parsed = MessageSchema.parse(msg);
+        return normalizeMessage(parsed);
+      });
+  }
+
+  // Fallback to chat.messages (flat array)
+  if (messages.length === 0 && raw.chat?.messages && raw.chat.messages.length > 0) {
+    messages = raw.chat.messages
+      .filter((msg) => {
+        const typedMsg = msg as { role?: string; content?: unknown };
+        return typedMsg.role && typedMsg.content !== undefined;
+      })
+      .map((msg) => {
+        const parsed = MessageSchema.parse(msg);
+        return normalizeMessage(parsed);
+      });
+  }
+
+  // Final fallback to raw.messages
+  if (messages.length === 0 && raw.messages && raw.messages.length > 0) {
+    messages = raw.messages.map(normalizeMessage);
+  }
 
   return {
     ...normalizeSummary(raw),
@@ -234,17 +295,72 @@ export async function createChat(
   payload: CreateChatInput
 ): Promise<OpenWebuiChatSummary> {
   const accessToken = await getOpenWebuiAccessToken(userId);
+
+  // Build chat object with all optional fields
+  const chatData: Record<string, unknown> = {
+    title: payload.title || "New conversation",
+    models: [payload.model],
+  };
+
+  // Add system prompt if provided
+  if (payload.system) {
+    chatData.system = payload.system;
+  }
+
+  // Add messages to history if provided (for duplicating chats)
+  if (payload.messages && payload.messages.length > 0) {
+    // Convert messages array to OpenWebUI history format
+    const historyMessages: Record<string, unknown> = {};
+    const timestamp = Math.floor(Date.now() / 1000);
+    let previousId: string | null = null;
+
+    payload.messages.forEach((msg, index) => {
+      const msgId = `msg-${Date.now()}-${index}`;
+      historyMessages[msgId] = {
+        id: msgId,
+        parentId: previousId,
+        childrenIds: [],
+        role: msg.role,
+        content: msg.content,
+        timestamp,
+        models: [payload.model],
+      };
+
+      // Update parent's childrenIds
+      if (previousId && historyMessages[previousId]) {
+        (historyMessages[previousId] as { childrenIds: string[] }).childrenIds.push(msgId);
+      }
+
+      previousId = msgId;
+    });
+
+    chatData.history = {
+      messages: historyMessages,
+      currentId: previousId,
+    };
+
+    // Also include flat messages array for compatibility
+    chatData.messages = payload.messages.map((msg, index) => ({
+      id: `msg-${Date.now()}-${index}`,
+      role: msg.role,
+      content: msg.content,
+      timestamp,
+    }));
+  }
+
   const response = await openWebuiClient.request(
-    "/api/chats/new",
+    "/api/v1/chats/new",
     "POST",
-    {
-      model: payload.model,
-      title: payload.title,
-      system: payload.system,
-      messages: payload.messages,
-    },
+    { chat: chatData },
     { accessToken, traceId, userId }
   );
+
+  logInfo(traceId, "Created OpenWebUI chat", {
+    userId,
+    chatId: (response as { id?: string }).id,
+    hasMessages: Boolean(payload.messages?.length),
+    messageCount: payload.messages?.length || 0,
+  });
 
   const parsed = ChatSummarySchema.parse(response);
   return normalizeSummary(parsed);
@@ -274,18 +390,25 @@ export async function updateChat(
   updates: UpdateChatInput
 ): Promise<OpenWebuiChatSummary> {
   const accessToken = await getOpenWebuiAccessToken(userId);
-  const payload: Record<string, unknown> = {};
 
-  if (typeof updates.title === "string") {
-    payload.title = updates.title;
-  }
+  // First get current chat data
+  const currentChat = await getChatDetail(userId, traceId, chatId);
+
+  // Build updated chat object
+  const payload: Record<string, unknown> = {
+    chat: {
+      id: chatId,
+      title: updates.title ?? currentChat.title,
+      models: currentChat.model ? [currentChat.model] : [],
+    },
+  };
 
   if (typeof updates.system === "string") {
-    payload.system = updates.system;
+    payload.chat = { ...payload.chat as object, system: updates.system };
   }
 
   if (updates.tags) {
-    payload.tags = updates.tags;
+    payload.chat = { ...payload.chat as object, tags: updates.tags };
   }
 
   const response = await openWebuiClient.request(
@@ -305,12 +428,29 @@ export async function deleteChat(
   chatId: string
 ): Promise<void> {
   const accessToken = await getOpenWebuiAccessToken(userId);
-  await openWebuiClient.request(
-    `/api/v1/chats/${chatId}/delete`,
-    "DELETE",
-    undefined,
-    { accessToken, traceId, userId, chatId }
-  );
+
+  // Try the standard DELETE endpoint first
+  try {
+    await openWebuiClient.request(
+      `/api/v1/chats/${chatId}`,
+      "DELETE",
+      undefined,
+      { accessToken, traceId, userId, chatId }
+    );
+  } catch (error) {
+    // Fallback to /delete suffix if standard endpoint fails
+    logInfo(traceId, "Retrying delete with /delete suffix", {
+      chatId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    await openWebuiClient.request(
+      `/api/v1/chats/${chatId}/delete`,
+      "DELETE",
+      undefined,
+      { accessToken, traceId, userId, chatId }
+    );
+  }
 }
 
 const modelCache = new Map<

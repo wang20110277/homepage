@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "openwebui_api_key" text;

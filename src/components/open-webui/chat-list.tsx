@@ -222,8 +222,8 @@ export function ChatListPanel() {
   };
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-background/80 shadow-lg backdrop-blur">
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+    <div className="flex h-full max-h-full flex-col rounded-2xl border border-white/10 bg-background/80 shadow-lg backdrop-blur">
+      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3 flex-shrink-0">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             对话
@@ -248,7 +248,7 @@ export function ChatListPanel() {
         </Button>
       </div>
 
-      <div className="border-b border-white/5 px-4 py-2">
+      <div className="border-b border-white/5 px-4 py-2 flex-shrink-0">
         <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
           <Search className="h-4 w-4" />
           <Input
@@ -260,7 +260,7 @@ export function ChatListPanel() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         {chatQuery.isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 加载对话中...
@@ -348,7 +348,7 @@ export function ChatListPanel() {
         )}
       </ScrollArea>
 
-      <div className="border-t border-white/5 px-4 py-3 text-xs text-muted-foreground">
+      <div className="border-t border-white/5 px-4 py-3 text-xs text-muted-foreground flex-shrink-0">
         {busyMessage}
       </div>
 

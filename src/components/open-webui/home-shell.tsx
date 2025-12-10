@@ -40,10 +40,10 @@ export function OpenWebuiHomeShell({ userName, tools }: OpenWebuiHomeShellProps)
 
       <OpenWebuiModelsProvider>
         <div className="flex-1 grid gap-4 lg:grid-cols-12 px-6 py-4 overflow-hidden">
-          <div className="order-2 lg:order-1 lg:col-span-3 h-full">
+          <div className="order-2 lg:order-1 lg:col-span-3 h-full overflow-hidden">
             <ChatListPanel />
           </div>
-          <div className="order-1 lg:order-2 lg:col-span-5 h-full">
+          <div className="order-1 lg:order-2 lg:col-span-5 h-full overflow-hidden">
             <ChatWorkspace userName={userName} />
           </div>
           <div className="order-3 lg:order-3 lg:col-span-4 h-full overflow-y-auto space-y-4 pr-2">

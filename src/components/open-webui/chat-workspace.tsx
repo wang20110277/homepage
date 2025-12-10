@@ -281,8 +281,8 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-background/90 shadow-xl">
-      <div className="flex flex-wrap items-center gap-3 border-b border-white/5 px-5 py-3">
+    <div className="flex h-full max-h-full flex-col rounded-2xl border border-white/10 bg-background/90 shadow-xl">
+      <div className="flex flex-wrap items-center gap-3 border-b border-white/5 px-5 py-3 flex-shrink-0">
         <div className="flex flex-1 flex-col">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             对话
@@ -320,7 +320,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 px-5 py-4">
+      <ScrollArea className="flex-1 min-h-0 px-5 py-4">
         <div className="space-y-4">
           {chatQuery.isLoading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
@@ -339,7 +339,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         </div>
       </ScrollArea>
 
-      <div className="border-t border-white/5 bg-background/90 px-5 py-4">
+      <div className="border-t border-white/5 bg-background/90 px-5 py-4 flex-shrink-0">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Wand2 className="h-3.5 w-3.5" />
           登录为 {userName}。可用模型: {modelsQuery.data?.length ?? 0}
