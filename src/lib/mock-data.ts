@@ -69,6 +69,27 @@ export const mockTodos: Todo[] = [
 // Mock 公告数据
 export const mockAnnouncements: Announcement[] = [
   {
+    id: "ann-005",
+    title: "🎉 项目更新 - v1.0.1",
+    content: `**✨ 功能更新**
+
+- 全新暖色皮肤，深色/浅色主题自适应
+- 全新 Markdown 渲染引擎，代码，表格显示更美观
+- 优化消息气泡显示，改进聊天界面布局和交互流畅度
+- 新增响应式侧边栏组件，支持展开/折叠
+- 全新上线deepseekOCR应用，一键提取文本
+
+---
+
+> **⏳ 后续待更新**
+>
+> - 天眼查应用，实时获取企业信息，生成尽调报告
+> - PPT生成应用，一键生成企业级文档`,
+    priority: "high",
+    publishedAt: "2026-01-05T10:00:00Z",
+    type: "success",
+  },
+  {
     id: "ann-001",
     title: "系统维护通知",
     content: "系统将于本周六凌晨 2:00-4:00 进行例行维护，期间服务可能暂时不可用，请提前做好准备。",

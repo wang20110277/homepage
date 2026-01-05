@@ -65,7 +65,13 @@
       "Bash(node scripts/generate-api-keys.js:*)",
       "Bash(pnpm rebuild:*)",
       "Bash(node-gyp rebuild)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__view_items_in_registries",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(dir /b:*)",
+      "Bash(dir:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

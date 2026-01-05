@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import type { Announcement } from "@/types";
 import { mockAnnouncements } from "@/lib/mock-data";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function AnnouncementBoard() {
   const [announcements] = useState<Announcement[]>(mockAnnouncements);
@@ -115,9 +117,40 @@ export function AnnouncementBoard() {
                           {getPriorityLabel(announcement.priority)}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {announcement.content}
-                      </p>
+                      <div className="text-sm text-muted-foreground mb-2 prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => (
+                              <p className="mb-2 last:mb-0 text-sm leading-relaxed">{children}</p>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground text-base block mb-1.5">
+                                {children}
+                              </strong>
+                            ),
+                            hr: () => (
+                              <hr className="my-4 border-border opacity-30" />
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="space-y-1.5 ml-0">{children}</ul>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-sm leading-relaxed flex items-start gap-2">
+                                <span className="text-foreground mt-0.5 select-none">•</span>
+                                <span className="flex-1">{children}</span>
+                              </li>
+                            ),
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-0 pl-0 my-2 opacity-50">
+                                {children}
+                              </blockquote>
+                            ),
+                          }}
+                        >
+                          {announcement.content}
+                        </ReactMarkdown>
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {formatDate(announcement.publishedAt)}
                       </div>

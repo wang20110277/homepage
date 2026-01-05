@@ -11,6 +11,10 @@ import { CalendarWidget } from "@/components/widgets/calendar-widget";
 import { TodoWidget } from "@/components/widgets/todo-widget";
 import { AnnouncementsWidget } from "@/components/widgets/announcements-widget";
 import { useRouter } from "next/navigation";
+import { useSidebarState } from "@/hooks/useSidebarState";
+import { MessageSquare, Calendar } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SidebarToggle } from "@/components/ui/sidebar-toggle";
 
 interface ToolStatus {
   id: ToolId;
@@ -29,28 +33,77 @@ interface OpenWebuiHomeShellProps {
 }
 
 export function OpenWebuiHomeShell({ userName, tools }: OpenWebuiHomeShellProps) {
-  return (
-    <div className="flex flex-col h-screen pt-16">
-      <div className="px-6 py-4 border-b border-white/5">
-        <p className="text-sm text-muted-foreground">欢迎回来，{userName}</p>
-        <h1 className="text-2xl font-semibold text-foreground">
-          您的工作台，一站式管理
-        </h1>
-      </div>
+  const {
+    leftSidebarOpen,
+    rightSidebarOpen,
+    toggleLeftSidebar,
+    toggleRightSidebar,
+  } = useSidebarState();
 
+  return (
+    <div className="flex flex-col h-screen pt-20">
       <OpenWebuiModelsProvider>
-        <div className="flex-1 grid gap-4 lg:grid-cols-12 px-6 py-4 overflow-hidden">
-          <div className="order-2 lg:order-1 lg:col-span-3 h-full overflow-hidden">
-            <ChatListPanel />
+        <div className="flex-1 flex gap-4 px-6 py-6 overflow-hidden">
+          {/* 左侧边栏 - 对话列表 */}
+          <div
+            className={cn(
+              "relative h-full transition-all duration-300 ease-in-out",
+              leftSidebarOpen ? "w-64 lg:w-72 xl:w-80" : "w-16"
+            )}
+          >
+            {/* 侧边栏内容 */}
+            <div
+              className={cn(
+                "h-full overflow-hidden transition-opacity duration-300",
+                leftSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+              )}
+            >
+              <ChatListPanel />
+            </div>
+
+            {/* 折叠按钮 */}
+            <SidebarToggle
+              side="left"
+              isOpen={leftSidebarOpen}
+              onToggle={toggleLeftSidebar}
+              label="对话列表"
+              icon={MessageSquare}
+            />
           </div>
-          <div className="order-1 lg:order-2 lg:col-span-5 h-full overflow-hidden">
+
+          {/* 中间区域 - 聊天工作区 */}
+          <div className="flex-1 h-full overflow-hidden min-w-0">
             <ChatWorkspace userName={userName} />
           </div>
-          <div className="order-3 lg:order-3 lg:col-span-4 h-full overflow-y-auto space-y-4 pr-2">
-            <CalendarWidget />
-            <TodoWidget />
-            <AnnouncementsWidget />
-            <ToolColumn tools={tools} />
+
+          {/* 右侧边栏 - Widgets */}
+          <div
+            className={cn(
+              "relative h-full transition-all duration-300 ease-in-out",
+              rightSidebarOpen ? "w-64 lg:w-72 xl:w-80" : "w-16"
+            )}
+          >
+            {/* 侧边栏内容 */}
+            <div
+              className={cn(
+                "h-full overflow-y-auto space-y-4 pr-2 transition-opacity duration-300",
+                rightSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+              )}
+            >
+              <CalendarWidget />
+              <TodoWidget />
+              <AnnouncementsWidget />
+              <ToolColumn tools={tools} />
+            </div>
+
+            {/* 折叠按钮 */}
+            <SidebarToggle
+              side="right"
+              isOpen={rightSidebarOpen}
+              onToggle={toggleRightSidebar}
+              label="日历 & 工具"
+              icon={Calendar}
+            />
           </div>
         </div>
       </OpenWebuiModelsProvider>

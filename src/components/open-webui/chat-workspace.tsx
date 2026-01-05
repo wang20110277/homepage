@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchChatById,
@@ -10,7 +10,6 @@ import {
 import type {
   OpenWebuiChatDetail,
   OpenWebuiChatSummary,
-  OpenWebuiMessage,
 } from "@/types/open-webui";
 import { useChatStore } from "@/hooks/useChatStore";
 import { Button } from "@/components/ui/button";
@@ -23,9 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
-import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -34,20 +31,12 @@ import {
   StopCircle,
   Wand2,
 } from "lucide-react";
-import { format } from "date-fns";
 import { useOpenWebuiModels } from "@/contexts/openWebuiModelsContext";
+import { MessageBubble } from "./message-bubble";
 
 interface ChatWorkspaceProps {
   userName: string;
 }
-
-const MESSAGE_ROLES: Record<OpenWebuiMessage["role"], string> = {
-  user: "You",
-  assistant: "Assistant",
-  system: "System",
-  tool: "Tool",
-  observation: "Observation",
-};
 
 export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
   const queryClient = useQueryClient();
@@ -142,7 +131,6 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         : Math.random().toString(36).slice(2);
 
     const userMessage = composerValue.trim();
-    setComposerValue("");
     setStreaming(true);
     setStreamedResponse("");
 
@@ -218,9 +206,24 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
                 ? `${event.error}. Try sending your message again.`
                 : "The assistant stopped responding. Please try again."
             );
+            // 清理不完整的消息
+            updateChatCache(activeChatId, (current) =>
+              current
+                ? {
+                    ...current,
+                    messages: current.messages.filter(
+                      (message) =>
+                        message.id !== messageId &&
+                        message.id !== `user-${messageId}`
+                    ),
+                  }
+                : current
+            );
           }
         },
       });
+      // 成功后清空输入框
+      setComposerValue("");
     } catch (error) {
       if (controller.signal.aborted) {
         toast.error("Generation cancelled");
@@ -231,12 +234,15 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
             : "Failed to send message. Please try again."
         );
       }
+      // 删除用户消息和助手消息
       updateChatCache(activeChatId, (current) =>
         current
           ? {
               ...current,
               messages: current.messages.filter(
-                (message) => message.id !== messageId
+                (message) =>
+                  message.id !== messageId &&
+                  message.id !== `user-${messageId}`
               ),
             }
           : current
@@ -379,35 +385,3 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
     </div>
   );
 }
-
-function MessageBubble({ message }: { message: OpenWebuiMessage }) {
-  const isAssistant = message.role === "assistant";
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border px-4 py-3 text-sm shadow-sm",
-        isAssistant
-          ? "border-primary/30 bg-primary/5"
-          : "border-white/10 bg-white/5"
-      )}
-    >
-      <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">
-          {MESSAGE_ROLES[message.role] || message.role}
-        </span>
-        {message.createdAt && (
-          <span>
-            {format(new Date(message.createdAt), "MMM d, HH:mm")}
-          </span>
-        )}
-      </div>
-      <div className="prose prose-invert max-w-none text-sm">
-        <ReactMarkdown>{message.content || "..."}</ReactMarkdown>
-      </div>
-    </div>
-  );
-}
-
-
-
-

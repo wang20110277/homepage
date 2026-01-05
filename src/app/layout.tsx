@@ -32,9 +32,11 @@ export default function RootLayout({
             <div className="relative min-h-screen overflow-hidden">
               <div className="pointer-events-none absolute inset-0 bg-background/95">
                 <StarsBackground className="opacity-60" />
-                <ShootingStars minDelay={800} maxDelay={2000} />
-                <ShootingStars minDelay={800} maxDelay={2000} />
-                <ShootingStars minDelay={800} maxDelay={2000} />
+                <ShootingStars minDelay={800} maxDelay={1500} />
+                <ShootingStars minDelay={800} maxDelay={1500} />
+                <ShootingStars minDelay={800} maxDelay={1500} />
+                <ShootingStars minDelay={800} maxDelay={1500} />
+                <ShootingStars minDelay={800} maxDelay={1500} />
               </div>
               <div className="relative z-10 flex min-h-screen flex-col bg-transparent">
                 <SiteHeader />

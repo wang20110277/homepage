@@ -3,20 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CometCard } from "@/components/ui/comet-card";
 import { Bell } from "lucide-react";
+import { mockAnnouncements } from "@/lib/mock-data";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function AnnouncementsWidget() {
-  const announcements = [
-    {
-      id: 1,
-      title: "系统维护通知",
-      date: "2025-11-18",
-    },
-    {
-      id: 2,
-      title: "新功能上线",
-      date: "2025-11-15",
-    },
-  ];
+  // 只显示最新的公告
+  const latestAnnouncement = mockAnnouncements[0];
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   return (
     <CometCard disableEffects>
@@ -29,16 +31,48 @@ export function AnnouncementsWidget() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {announcements.map((announcement) => (
-              <div key={announcement.id}>
-                <p className="text-sm font-medium text-foreground">
-                  {announcement.title}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {announcement.date}
-                </p>
+            <div>
+              <p className="text-sm font-medium text-foreground mb-2">
+                {latestAnnouncement.title}
+              </p>
+              <div className="text-xs text-muted-foreground mb-2 prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => (
+                      <p className="mb-2 last:mb-0 text-xs leading-relaxed">
+                        {children}
+                      </p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-foreground text-sm block mb-1">
+                        {children}
+                      </strong>
+                    ),
+                    hr: () => <hr className="my-3 border-border opacity-30" />,
+                    ul: ({ children }) => (
+                      <ul className="space-y-1 ml-0 text-xs">{children}</ul>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-xs leading-relaxed flex items-start gap-2">
+                        <span className="text-foreground mt-1 select-none">•</span>
+                        <span className="flex-1">{children}</span>
+                      </li>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-0 pl-0 my-2 opacity-50">
+                        {children}
+                      </blockquote>
+                    ),
+                  }}
+                >
+                  {latestAnnouncement.content}
+                </ReactMarkdown>
               </div>
-            ))}
+              <p className="text-xs text-muted-foreground">
+                {formatDate(latestAnnouncement.publishedAt)}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

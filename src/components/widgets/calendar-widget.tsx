@@ -2,15 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CometCard } from "@/components/ui/comet-card";
+import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function CalendarWidget() {
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  // 任务截止日期示例
-  const taskDueDates = [5, 12, 18, 25]; // 本月的某些日期有未完成任务
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -63,21 +61,27 @@ export function CalendarWidget() {
               日历
             </CardTitle>
             <div className="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={previousMonth}
-                className="p-1 hover:bg-white/10 rounded"
+                aria-label="上个月"
+                className="h-7 w-7"
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
+              </Button>
               <span className="text-sm font-medium min-w-[80px] text-center">
                 {currentDate.getFullYear()}年 {monthNames[currentDate.getMonth()]}
               </span>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={nextMonth}
-                className="p-1 hover:bg-white/10 rounded"
+                aria-label="下个月"
+                className="h-7 w-7"
               >
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -90,7 +94,6 @@ export function CalendarWidget() {
             ))}
             {days.map((day, index) => {
               const isToday = isCurrentMonth && day === today.getDate();
-              const hasTasks = day && taskDueDates.includes(day);
 
               return (
                 <div
@@ -99,7 +102,6 @@ export function CalendarWidget() {
                     "p-1 rounded aspect-square flex items-center justify-center",
                     day && "hover:bg-white/5 cursor-pointer",
                     isToday && "bg-primary/20 text-primary font-bold",
-                    hasTasks && !isToday && "bg-destructive/20 text-destructive font-semibold",
                     !day && "opacity-0"
                   )}
                 >
@@ -108,14 +110,10 @@ export function CalendarWidget() {
               );
             })}
           </div>
-          <div className="mt-3 pt-3 border-t border-white/5 text-xs text-muted-foreground space-y-1">
+          <div className="mt-3 pt-3 border-t border-white/5 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-primary/20" />
               <span>今天</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-destructive/20" />
-              <span>未完成任务截止日</span>
             </div>
           </div>
         </CardContent>
