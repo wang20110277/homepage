@@ -1,63 +1,36 @@
-import Database from "better-sqlite3";
-import { existsSync } from "fs";
+/**
+ * WebUI 数据库连接（使用 Node.js 内置 sqlite）
+ *
+ * 从 Open WebUI 的 SQLite 数据库中读取用户 API Keys
+ */
 
-const WEBUI_DB_PATH = process.env.WEBUI_DB_PATH || "./webui.db";
+import { DatabaseSync } from "node:sqlite";
+import { join } from "node:path";
 
-interface WebuiUser {
-  id: string;
-  api_key: string | null;
-}
+// 数据库路径
+const dbPath = join(process.cwd(), "webui.db");
 
-// 单例数据库连接
-let dbInstance: Database.Database | null = null;
-let dbError: Error | null = null;
+// 数据库连接单例
+let db: DatabaseSync | null = null;
 
 /**
- * 获取数据库连接（单例模式）
- * @returns Database 实例或 null（如果数据库不可用）
+ * 获取数据库连接（懒加载）
  */
-function getDatabase(): Database.Database | null {
-  // 如果之前尝试失败过，直接返回 null
-  if (dbError) {
-    return null;
+function getDatabase(): DatabaseSync {
+  if (!db) {
+    try {
+      db = new DatabaseSync(dbPath);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[WebuiDB] Connected to database at ${dbPath}`);
+      }
+    } catch (error) {
+      console.error(`[WebuiDB] Failed to open webui.db at ${dbPath}:`, error);
+      throw new Error(
+        `Unable to connect to Open WebUI database: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
-
-  // 如果已有连接，返回
-  if (dbInstance) {
-    return dbInstance;
-  }
-
-  // 检查文件是否存在
-  if (!existsSync(WEBUI_DB_PATH)) {
-    dbError = new Error(`WebUI database not found at: ${WEBUI_DB_PATH}`);
-    console.warn(`[WebuiDB] ${dbError.message}, API key sync disabled`);
-    return null;
-  }
-
-  try {
-    dbInstance = new Database(WEBUI_DB_PATH, { readonly: true });
-    console.info(`[WebuiDB] Connected to ${WEBUI_DB_PATH}`);
-    return dbInstance;
-  } catch (error) {
-    dbError = error instanceof Error ? error : new Error(String(error));
-    console.error(`[WebuiDB] Failed to connect to database:`, dbError);
-    return null;
-  }
-}
-
-/**
- * 验证 API Key 格式
- * @param apiKey API Key 字符串
- * @returns 是否有效
- */
-function isValidApiKey(apiKey: string | null | undefined): boolean {
-  if (!apiKey || typeof apiKey !== "string") {
-    return false;
-  }
-
-  const trimmed = apiKey.trim();
-  // Open WebUI 的 API Key 格式通常是 sk- 开头
-  return trimmed.length > 10 && trimmed.startsWith("sk-");
+  return db;
 }
 
 /**
@@ -66,38 +39,24 @@ function isValidApiKey(apiKey: string | null | undefined): boolean {
  * @returns API Key 或 null
  */
 export function getWebuiUserApiKey(email: string): string | null {
-  const db = getDatabase();
-  if (!db) {
-    return null; // 数据库不可用，优雅降级
-  }
-
   try {
-    // 统一转小写处理大小写不敏感
-    const normalizedEmail = email.toLowerCase().trim();
+    const database = getDatabase();
+    const stmt = database.prepare("SELECT api_key FROM user WHERE email = ?");
+    const row = stmt.get(email) as { api_key: string | null } | undefined;
 
-    const row = db
-      .prepare<string, WebuiUser>(
-        "SELECT id, api_key FROM user WHERE LOWER(email) = ?"
-      )
-      .get(normalizedEmail);
-
-    if (!row) {
-      return null;
-    }
-
-    const apiKey = row.api_key?.trim() || null;
-
-    // 验证 API Key 格式
-    if (!isValidApiKey(apiKey)) {
+    if (row?.api_key) {
       if (process.env.NODE_ENV === "development") {
-        console.warn(`[WebuiDB] Invalid API key format for user: ${email}`);
+        console.log(`[WebuiDB] Found API key for ${email}`);
       }
-      return null;
+      return row.api_key;
     }
 
-    return apiKey;
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[WebuiDB] No API key found for ${email}`);
+    }
+    return null;
   } catch (error) {
-    console.error(`[WebuiDB] Error querying user API key:`, error);
+    console.error(`[WebuiDB] Error getting API key for ${email}:`, error);
     return null;
   }
 }
@@ -108,40 +67,35 @@ export function getWebuiUserApiKey(email: string): string | null {
  * @returns 用户是否存在
  */
 export function webuiUserExists(email: string): boolean {
-  const db = getDatabase();
-  if (!db) {
-    return false; // 数据库不可用，返回 false
-  }
-
   try {
-    // 统一转小写处理大小写不敏感
-    const normalizedEmail = email.toLowerCase().trim();
+    const database = getDatabase();
+    const stmt = database.prepare("SELECT 1 FROM user WHERE email = ?");
+    const row = stmt.get(email);
 
-    const row = db
-      .prepare<string, { id: string }>(
-        "SELECT id FROM user WHERE LOWER(email) = ?"
-      )
-      .get(normalizedEmail);
-
-    return !!row;
+    const exists = !!row;
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[WebuiDB] User ${email} exists: ${exists}`);
+    }
+    return exists;
   } catch (error) {
-    console.error(`[WebuiDB] Error checking user existence:`, error);
+    console.error(`[WebuiDB] Error checking user existence for ${email}:`, error);
     return false;
   }
 }
 
 /**
- * 关闭数据库连接（用于应用关闭时清理）
+ * 关闭数据库连接
  */
 export function closeWebuiDatabase(): void {
-  if (dbInstance) {
+  if (db) {
     try {
-      dbInstance.close();
-      console.info("[WebuiDB] Database connection closed");
+      db.close();
+      db = null;
+      if (process.env.NODE_ENV === "development") {
+        console.log("[WebuiDB] Database connection closed");
+      }
     } catch (error) {
       console.error("[WebuiDB] Error closing database:", error);
-    } finally {
-      dbInstance = null;
     }
   }
 }

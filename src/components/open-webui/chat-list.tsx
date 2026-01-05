@@ -14,7 +14,6 @@ import type { OpenWebuiChatSummary } from "@/types/open-webui";
 import { useChatStore } from "@/hooks/useChatStore";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -222,7 +221,7 @@ export function ChatListPanel() {
   };
 
   return (
-    <div className="flex h-full max-h-full flex-col rounded-2xl border border-white/10 bg-background/80 shadow-lg backdrop-blur">
+    <div className="flex h-full max-h-full w-full flex-col rounded-2xl border border-white/10 bg-background/80 shadow-lg backdrop-blur overflow-hidden">
       <div className="flex items-center justify-between border-b border-white/5 px-4 py-3 flex-shrink-0">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -260,7 +259,7 @@ export function ChatListPanel() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden">
         {chatQuery.isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 加载对话中...
@@ -270,47 +269,50 @@ export function ChatListPanel() {
             还没有对话。点击上方按钮创建新对话。
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-white/5 w-full">
             {filteredChats.map((chat) => {
               const isActive = chat.id === activeChatId;
               return (
-                <li key={chat.id}>
+                <li key={chat.id} className="w-full">
                   <div
                     onClick={() => {
                       setActiveChatId(chat.id);
                       trackEvent("chat_opened", { chatId: chat.id });
                     }}
                     className={cn(
-                      "flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition",
+                      "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition",
                       isActive
                         ? "bg-primary/10 text-foreground"
                         : "hover:bg-white/5"
                     )}
                   >
-                    <div className="flex flex-1 flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-primary" />
-                        <p className="line-clamp-1 text-sm font-semibold">
-                          {chat.title}
-                        </p>
+                    <div className="flex flex-1 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <MessageSquare className="h-4 w-4 text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate text-sm font-semibold">
+                            {chat.title}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {chat.lastMessagePreview || "暂无消息"}
+                          </p>
+                          <p className="text-xs text-muted-foreground/70">
+                            {chat.updatedAt
+                              ? formatDistanceToNow(new Date(chat.updatedAt), {
+                                  addSuffix: true,
+                                })
+                              : ""}
+                          </p>
+                        </div>
                       </div>
-                      <p className="line-clamp-1 text-xs text-muted-foreground">
-                        {chat.lastMessagePreview || "暂无消息"}
-                      </p>
-                      <p className="text-xs text-muted-foreground/70">
-                        {chat.updatedAt
-                          ? formatDistanceToNow(new Date(chat.updatedAt), {
-                              addSuffix: true,
-                            })
-                          : ""}
-                      </p>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
+                    <div className="flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={(event) => {
@@ -339,14 +341,15 @@ export function ChatListPanel() {
                           删除
                         </DropdownMenuItem>
                       </DropdownMenuContent>
-                    </DropdownMenu>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </li>
               );
             })}
           </ul>
         )}
-      </ScrollArea>
+      </div>
 
       <div className="border-t border-white/5 px-4 py-3 text-xs text-muted-foreground flex-shrink-0">
         {busyMessage}

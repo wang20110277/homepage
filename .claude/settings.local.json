@@ -59,7 +59,13 @@
       "WebFetch(domain:github.com)",
       "Bash(pnpm add:*)",
       "Bash(CI=true pnpm install:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(sqlite3:*)",
+      "Bash(copy:*)",
+      "Bash(node scripts/generate-api-keys.js:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(node-gyp rebuild)",
+      "Bash(ls:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
