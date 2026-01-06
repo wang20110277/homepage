@@ -307,6 +307,32 @@ export async function POST(request: NextRequest) {
               }
             }
 
+            // Auto-generate title from first user message if still default
+            const currentTitle = rawChatResponse.title || "New chat";
+            const isDefaultTitle = ["New conversation", "New chat", "Untitled chat", "未命名对话"].includes(currentTitle);
+
+            // Check if this is the first user message (no previous non-system messages)
+            const hasNoUserMessages = !Object.values(historyMessages).some(
+              (msg) => msg.id !== userMessageId && msg.role === "user"
+            );
+
+            let finalTitle = currentTitle;
+            if (isDefaultTitle && hasNoUserMessages) {
+              // Generate title from first user message (max 50 chars)
+              // Remove newlines and extra spaces, handle empty messages
+              const userMessageContent = data.message
+                .trim()
+                .replace(/\s+/g, " "); // Replace all whitespace (including newlines) with single space
+
+              if (userMessageContent.length > 0) {
+                // Use slice instead of substring for better Unicode handling
+                finalTitle = userMessageContent.length > 50
+                  ? `${userMessageContent.slice(0, 50)}...`
+                  : userMessageContent;
+              }
+              // If message is empty after cleanup, keep the default title
+            }
+
             // Save complete chat with history
             await openWebuiClient.request(
               `/api/v1/chats/${chatId}`,
@@ -314,7 +340,7 @@ export async function POST(request: NextRequest) {
               {
                 chat: {
                   id: chatId,
-                  title: rawChatResponse.title || "New chat",
+                  title: finalTitle,
                   models: [data.model],
                   history: {
                     messages: historyMessages,

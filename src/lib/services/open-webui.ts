@@ -52,6 +52,10 @@ const ChatSummarySchema = z.object({
   chat: z.object({
     models: z.array(z.string()).optional().nullable(),
     messages: z.array(z.any()).optional().nullable(),
+    history: z.object({
+      messages: z.record(z.string(), z.any()).optional().nullable(),
+      currentId: z.string().optional().nullable(),
+    }).optional().nullable(),
   }).optional().nullable(),
 });
 
@@ -75,7 +79,7 @@ const ModelSchema = z.object({
   provider: z.string().optional().nullable(),
   owned_by: z.string().optional().nullable(),
   label: z.string().optional().nullable(),
-  tags: z.array(z.string()).optional().nullable(),
+  tags: z.array(z.any()).optional().nullable(),
   capabilities: z
     .union([
       z.array(z.string()),
@@ -155,16 +159,34 @@ function normalizeSummary(
   // Extract model from chat.models if available, otherwise use raw.model
   const model = raw.chat?.models?.[0] ?? raw.model ?? undefined;
 
-  // Try to extract last message from chat.messages if available
+  // Try to extract last message preview from multiple sources
   let lastMessagePreview = raw.summary?.trim();
+
+  // Try to extract from chat.messages if available
   if (!lastMessagePreview && raw.chat?.messages && raw.chat.messages.length > 0) {
     const lastMsg = raw.chat.messages[raw.chat.messages.length - 1];
-    if (lastMsg && typeof lastMsg.content === 'string') {
-      lastMessagePreview = lastMsg.content.substring(0, 100);
+    if (lastMsg) {
+      const content = normalizeContent(lastMsg.content);
+      if (content) {
+        lastMessagePreview = content.substring(0, 100);
+      }
     }
   }
+
+  // Try to extract from chat.history.messages if available
+  if (!lastMessagePreview && raw.chat?.history?.messages && raw.chat?.history?.currentId) {
+    const currentMessage = raw.chat.history.messages[raw.chat.history.currentId];
+    if (currentMessage) {
+      const content = normalizeContent((currentMessage as { content?: unknown }).content);
+      if (content) {
+        lastMessagePreview = content.substring(0, 100);
+      }
+    }
+  }
+
+  // Fallback to metadata
   if (!lastMessagePreview && typeof raw.metadata?.last_message === "string") {
-    lastMessagePreview = raw.metadata.last_message;
+    lastMessagePreview = raw.metadata.last_message.substring(0, 100);
   }
 
   return {
@@ -173,7 +195,7 @@ function normalizeSummary(
     model,
     createdAt: coerceTimestamp(raw.created_at),
     updatedAt: coerceTimestamp(raw.updated_at),
-    lastMessagePreview,
+    lastMessagePreview: lastMessagePreview || undefined,
   };
 }
 

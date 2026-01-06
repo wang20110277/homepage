@@ -71,7 +71,8 @@
       "mcp__shadcn__get_item_examples_from_registries",
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(dir /b:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(tree:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

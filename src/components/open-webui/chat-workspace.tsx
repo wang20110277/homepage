@@ -13,7 +13,6 @@ import type {
 } from "@/types/open-webui";
 import { useChatStore } from "@/hooks/useChatStore";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -51,7 +50,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
   } = useChatStore();
   const [streamedResponse, setStreamedResponse] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
 
   const chatQuery = useQuery({
     queryKey: activeChatId ? openWebuiKeys.chatDetail(activeChatId) : ["openwebui", "chat", "empty"],
@@ -68,9 +67,10 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
     }
   }, [chatQuery.data?.model, activeChatId, setSelectedModel]);
 
+  // Auto-scroll to bottom when messages update or streaming
   useEffect(() => {
-    if (endRef.current) {
-      endRef.current.scrollIntoView({ behavior: "smooth" });
+    if (scrollViewportRef.current) {
+      scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
     }
   }, [chatQuery.data?.messages, streamedResponse, isStreaming]);
 
@@ -92,25 +92,6 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         OpenWebuiChatDetail | undefined
     ) => {
       queryClient.setQueryData(openWebuiKeys.chatDetail(chatId), updater);
-    },
-    [queryClient]
-  );
-
-  const updateChatListPreview = useCallback(
-    (chatId: string, preview: string) => {
-      queryClient.setQueryData<OpenWebuiChatSummary[]>(
-        openWebuiKeys.chats,
-        (existing = []) =>
-          existing.map((chat) =>
-            chat.id === chatId
-              ? {
-                  ...chat,
-                  lastMessagePreview: preview,
-                  updatedAt: new Date().toISOString(),
-                }
-              : chat
-          )
-      );
     },
     [queryClient]
   );
@@ -164,7 +145,21 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
       };
     });
 
-    updateChatListPreview(activeChatId, userMessage);
+    // Update chat list preview with user message (clean newlines for display)
+    const cleanPreview = userMessage.replace(/\s+/g, " ").trim();
+    queryClient.setQueryData<OpenWebuiChatSummary[]>(
+      openWebuiKeys.chats,
+      (existing = []) =>
+        existing.map((chat) =>
+          chat.id === activeChatId
+            ? {
+                ...chat,
+                lastMessagePreview: cleanPreview,
+                updatedAt: new Date().toISOString(),
+              }
+            : chat
+        )
+    );
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -196,9 +191,20 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
             });
           } else if (event.type === "chat") {
             updateChatCache(activeChatId, () => event.chat);
-            updateChatListPreview(
-              activeChatId,
-              event.chat.lastMessagePreview || userMessage
+            // Update chat list with both title and preview
+            queryClient.setQueryData<OpenWebuiChatSummary[]>(
+              openWebuiKeys.chats,
+              (existing = []) =>
+                existing.map((chat) =>
+                  chat.id === activeChatId
+                    ? {
+                        ...chat,
+                        title: event.chat.title,
+                        lastMessagePreview: event.chat.lastMessagePreview || userMessage,
+                        updatedAt: new Date().toISOString(),
+                      }
+                    : chat
+                )
             );
           } else if (event.type === "error") {
             toast.error(
@@ -259,7 +265,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
     setComposerValue,
     setStreaming,
     updateChatCache,
-    updateChatListPreview,
+    queryClient,
   ]);
 
   const handleStop = () => {
@@ -326,7 +332,7 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 px-5 py-4">
+      <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto" ref={scrollViewportRef}>
         <div className="space-y-4">
           {chatQuery.isLoading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
@@ -341,9 +347,8 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
               还没有消息。向助手提问以开始对话。
             </div>
           )}
-          <div ref={endRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="border-t border-white/5 bg-background/90 px-5 py-4 flex-shrink-0">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
