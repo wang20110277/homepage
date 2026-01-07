@@ -363,6 +363,13 @@ export async function POST(request: NextRequest) {
           const { getChatDetail } = await import("@/lib/services/open-webui");
           const updatedChat = await getChatDetail(user.id, traceId, chatId);
 
+          // Use user message as preview (not assistant response)
+          const userMessagePreview = data.message
+            .replace(/<[^>]*>/g, '') // Strip HTML tags
+            .replace(/\s+/g, ' ') // Collapse whitespace
+            .trim()
+            .slice(0, 100);
+
           controller.enqueue(
             encoder.encode(
               toSseChunk({
@@ -372,7 +379,7 @@ export async function POST(request: NextRequest) {
                   title: updatedChat.title,
                   model: updatedChat.model || data.model,
                   messages: updatedChat.messages,
-                  lastMessagePreview: aggregatedContent.slice(0, 100),
+                  lastMessagePreview: userMessagePreview,
                 },
               })
             )

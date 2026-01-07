@@ -102,7 +102,16 @@ function coerceTimestamp(value?: string | number | Date | null): string | undefi
     return undefined;
   }
 
-  const date = value instanceof Date ? value : new Date(value);
+  // Handle numeric timestamps: OpenWebUI uses UNIX timestamps in seconds
+  // JavaScript Date expects milliseconds, so we need to convert
+  let dateValue = value;
+  if (typeof value === 'number') {
+    // If the number is less than 10^10, assume it's in seconds (needs * 1000)
+    // Otherwise assume it's already in milliseconds
+    dateValue = value < 10000000000 ? value * 1000 : value;
+  }
+
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
   if (Number.isNaN(date.getTime())) {
     return undefined;
   }
@@ -135,6 +144,26 @@ function normalizeContent(value: unknown): string {
   return "";
 }
 
+/**
+ * Strip HTML tags from text content for clean message previews.
+ * This ensures that chat list previews show readable text instead of HTML markup.
+ *
+ * @param html - Text that may contain HTML tags
+ * @returns Plain text with HTML tags removed
+ */
+function stripHtmlTags(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+    .replace(/&lt;/g, '<') // Decode common HTML entities
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ') // Collapse multiple whitespace
+    .trim();
+}
+
 function normalizeMessage(raw: z.infer<typeof MessageSchema>): OpenWebuiMessage {
   // OpenWebUI uses 'timestamp' (UNIX timestamp in seconds), fallback to 'created_at'
   const createdAtValue = raw.timestamp
@@ -159,34 +188,82 @@ function normalizeSummary(
   // Extract model from chat.models if available, otherwise use raw.model
   const model = raw.chat?.models?.[0] ?? raw.model ?? undefined;
 
-  // Try to extract last message preview from multiple sources
-  let lastMessagePreview = raw.summary?.trim();
+  let lastMessagePreview: string | undefined;
+  let lastUserMessage: string | undefined;
+  let lastAnyMessage: string | undefined;
 
-  // Try to extract from chat.messages if available
-  if (!lastMessagePreview && raw.chat?.messages && raw.chat.messages.length > 0) {
-    const lastMsg = raw.chat.messages[raw.chat.messages.length - 1];
-    if (lastMsg) {
-      const content = normalizeContent(lastMsg.content);
-      if (content) {
-        lastMessagePreview = content.substring(0, 100);
+  // Strategy 1: Try to extract from chat.history.messages (most reliable)
+  // This contains the complete conversation tree and current state
+  if (raw.chat?.history?.messages && raw.chat?.history?.currentId) {
+    const historyMessages = raw.chat.history.messages;
+    let nodeId: string | null | undefined = raw.chat.history.currentId;
+
+    // Build the full conversation chain from root to current
+    const messageChain: Array<{ role?: string; content?: unknown }> = [];
+    while (nodeId && historyMessages[nodeId]) {
+      const node = historyMessages[nodeId] as { role?: string; content?: unknown; parentId?: string | null };
+      messageChain.unshift(node); // Add to beginning to maintain order
+      nodeId = node.parentId;
+    }
+
+    // Find the last user message and last message in the chain
+    for (let i = messageChain.length - 1; i >= 0; i--) {
+      const node = messageChain[i];
+      if (!node || node.content === undefined) continue;
+
+      const content = normalizeContent(node.content);
+      const cleanContent = content ? stripHtmlTags(content).substring(0, 100) : '';
+
+      // Save last message if we haven't found one yet
+      if (!lastAnyMessage && cleanContent) {
+        lastAnyMessage = cleanContent;
+      }
+
+      // If this is a user message and we haven't found one yet, save it
+      if (node.role === "user" && cleanContent && !lastUserMessage) {
+        lastUserMessage = cleanContent;
+        break; // Found the last user message, can stop
       }
     }
   }
 
-  // Try to extract from chat.history.messages if available
-  if (!lastMessagePreview && raw.chat?.history?.messages && raw.chat?.history?.currentId) {
-    const currentMessage = raw.chat.history.messages[raw.chat.history.currentId];
-    if (currentMessage) {
-      const content = normalizeContent((currentMessage as { content?: unknown }).content);
-      if (content) {
-        lastMessagePreview = content.substring(0, 100);
+  // Strategy 2: Fallback to chat.messages if history didn't provide results
+  // Only check if we haven't found a user message from history
+  if (!lastUserMessage && raw.chat?.messages && raw.chat.messages.length > 0) {
+    // Find the last user message and last message overall
+    for (let i = raw.chat.messages.length - 1; i >= 0; i--) {
+      const msg = raw.chat.messages[i];
+      if (!msg) continue;
+
+      const role = (msg as { role?: string }).role;
+      const content = normalizeContent(msg.content);
+      const cleanContent = content ? stripHtmlTags(content).substring(0, 100) : '';
+
+      // Save last message if we haven't found one yet (from both strategies)
+      if (!lastAnyMessage && cleanContent) {
+        lastAnyMessage = cleanContent;
+      }
+
+      // If this is a user message and we haven't found one yet, save it
+      if (role === "user" && cleanContent && !lastUserMessage) {
+        lastUserMessage = cleanContent;
+        break; // Found the last user message, can stop
       }
     }
   }
 
-  // Fallback to metadata
+  // Decide which preview to use
+  // Priority: last user message > last any message > summary > metadata
+  lastMessagePreview = lastUserMessage || lastAnyMessage;
+
+  if (!lastMessagePreview) {
+    // Fallback to summary
+    lastMessagePreview = raw.summary?.trim();
+  }
+
   if (!lastMessagePreview && typeof raw.metadata?.last_message === "string") {
-    lastMessagePreview = raw.metadata.last_message.substring(0, 100);
+    // Final fallback to metadata
+    lastMessagePreview = stripHtmlTags(raw.metadata.last_message).substring(0, 100);
   }
 
   return {

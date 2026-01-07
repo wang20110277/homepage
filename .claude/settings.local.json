@@ -72,7 +72,11 @@
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(dir /b:*)",
       "Bash(dir:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(if not exist \"functionList\" mkdir functionList)",
+      "Bash(powershell -Command \"if (-not (Test-Path ''functionList'')) { New-Item -ItemType Directory -Path ''functionList'' }\")"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
