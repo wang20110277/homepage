@@ -76,7 +76,15 @@
       "Bash(pnpm lint:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(if not exist \"functionList\" mkdir functionList)",
-      "Bash(powershell -Command \"if (-not (Test-Path ''functionList'')) { New-Item -ItemType Directory -Path ''functionList'' }\")"
+      "Bash(powershell -Command \"if (-not (Test-Path ''functionList'')) { New-Item -ItemType Directory -Path ''functionList'' }\")",
+      "Bash(wc:*)",
+      "Bash(if not exist \"scripts\" mkdir scripts)",
+      "Bash(powershell -Command \"if (-not (Test-Path ''scripts'')) { New-Item -ItemType Directory -Path ''scripts'' }\")",
+      "Bash(pnpm remove:*)",
+      "Bash(New-Item -ItemType Directory -Path \"C:\\Users\\wj_ds\\.claude\\statusline\" -Force)",
+      "Bash(Copy-Item -Path \"C:\\Users\\wj_ds\\Desktop\\homepage\\statusline\\statusline.ps1\" -Destination \"C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1\")",
+      "Bash(Test-Path \"C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1\")",
+      "Bash(powershell:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
