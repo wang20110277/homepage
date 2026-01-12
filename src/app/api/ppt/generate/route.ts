@@ -17,27 +17,16 @@ import {
 
 /**
  * Request body schema for PPT generation
- * Matches the actual Presenton API structure
+ * Simplified to match actual Presenton API v1/ppt/generate
+ * Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Export format is hardcoded to "pptx"
+ * Template is hardcoded to "general"
  */
 const GeneratePptSchema = z.object({
   content: z
     .string()
     .min(10, "Content must be at least 10 characters")
     .max(50000, "Content must not exceed 50000 characters"),
-  slides_markdown: z.array(z.string()).optional(),
-  instructions: z.string().optional(),
-  tone: z
-    .enum(["default", "professional", "casual", "academic", "creative"])
-    .optional()
-    .default("default"),
-  verbosity: z
-    .enum(["concise", "standard", "detailed"])
-    .optional()
-    .default("standard"),
-  markdown_emphasis: z.boolean().optional().default(true),
-  web_search: z.boolean().optional().default(false),
-  image_type: z.enum(["stock", "ai", "none"]).optional().default("stock"),
-  theme: z.string().optional(),
   n_slides: z
     .number()
     .int()
@@ -45,15 +34,7 @@ const GeneratePptSchema = z.object({
     .max(50, "Cannot generate more than 50 slides")
     .optional()
     .default(8),
-  language: z.string().optional().default("English"),
-  template: z.string().optional().default("general"),
-  include_table_of_contents: z.boolean().optional().default(false),
-  include_title_slide: z.boolean().optional().default(true),
-  allow_access_to_user_info: z.boolean().optional().default(true),
-  files: z.array(z.string()).optional().default([]),
-  export_as: z.enum(["pptx", "pdf"]).optional().default("pptx"),
-  trigger_webhook: z.boolean().optional().default(false),
-  // BFF-specific option
+  // BFF-specific option for async generation
   async: z.boolean().optional().default(false),
 });
 
@@ -62,17 +43,21 @@ const GeneratePptSchema = z.object({
  *
  * Generate a PPT presentation using Presenton service
  *
- * Request body matches Presenton API with additional 'async' flag:
- * - async: false (default) - Synchronous generation, returns result directly
- * - async: true - Asynchronous generation, returns task ID for status polling
+ * Request body (simplified):
+ * - content: string (required, 10-50000 chars) - PPT content/topic
+ * - n_slides: number (optional, 1-50, default 8) - Number of slides
+ * - async: boolean (optional, default false) - Async generation mode
+ *
+ * Note: Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Note: Export format is hardcoded to "pptx"
+ * Note: Template is hardcoded to "general"
  *
  * Response (sync):
  * {
  *   success: true,
  *   data: {
- *     presentation: { id, title, slides, ... },
- *     downloadUrl: string,
- *     previewUrl?: string
+ *     presentation: { id, download_url, ... },
+ *     downloadUrl: string
  *   },
  *   traceId: string
  * }
@@ -122,9 +107,6 @@ const handler: BffRouteHandler = async (request: NextRequest, context) => {
 
     logInfo(traceId, "Calling Presenton service", {
       nSlides: generationInput.n_slides,
-      language: generationInput.language,
-      template: generationInput.template,
-      tone: generationInput.tone,
       async: isAsync,
       contentLength: generationInput.content?.length || 0,
       hasContent: !!generationInput.content,

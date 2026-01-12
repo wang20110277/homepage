@@ -125,7 +125,7 @@ export function AnnouncementBoard() {
                               <p className="mb-2 last:mb-0 text-sm leading-relaxed">{children}</p>
                             ),
                             strong: ({ children }) => (
-                              <strong className="font-semibold text-foreground text-base block mb-1.5">
+                              <strong className="font-semibold text-foreground">
                                 {children}
                               </strong>
                             ),

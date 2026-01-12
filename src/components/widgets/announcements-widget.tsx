@@ -45,7 +45,7 @@ export function AnnouncementsWidget() {
                       </p>
                     ),
                     strong: ({ children }) => (
-                      <strong className="font-semibold text-foreground text-sm block mb-1">
+                      <strong className="font-semibold text-foreground">
                         {children}
                       </strong>
                     ),

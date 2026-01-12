@@ -4,53 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/tools/image-upload";
-import { mockOCRResults } from "@/lib/mock-data";
 import type { OCRResult } from "@/types";
 import { toast } from "sonner";
 import {
-  BadgeCheck,
   Download,
   Loader2,
   Sparkles,
   CheckCircle2,
   Zap,
   FileText,
-  Shield,
   Copy,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const modeOptions = [
-  { value: "normal", label: "普通识别", description: "快速提取图片文字" },
-  { value: "structured", label: "文档结构输出", description: "保留标题 / 列表结构" },
-] as const;
-
-const modelOptions = [
-  { value: "mini", label: "迷你", description: "极速返回" },
-  { value: "small", label: "小型", description: "速度与准确平衡" },
-  { value: "base", label: "基础", description: "通用场景" },
-  { value: "large", label: "大型", description: "高精度复杂文本" },
-] as const;
-
-type OCRMode = (typeof modeOptions)[number]["value"];
-type ModelSize = (typeof modelOptions)[number]["value"];
-
-// 映射前端模式到后端prompt_type
-const MODE_TO_PROMPT: Record<OCRMode, string> = {
-  normal: "Free OCR",
-  structured: "Markdown Conversion",
-};
-
-// 映射前端模型到后端model_size
-const MODEL_TO_SIZE: Record<ModelSize, string> = {
-  mini: "Tiny",
-  small: "Small",
-  base: "Base",
-  large: "Large",
-};
 
 const features = [
   { icon: Zap, text: "极速识别响应，适合批量文件" },
@@ -60,26 +29,20 @@ const features = [
 ];
 
 const usageTips = [
-  "基础模型覆盖大多数场景，系统会自动裁剪噪声边缘",
-  "文档结构输出更适合长文档或带层级的资料",
-  "普通识别可快速提取短文本或截图内容",
+  "系统会自动将图片内容转换为Markdown格式",
+  "支持识别图片中的文字、表格、公式等内容",
   "上传清晰、对比度高的图片有助于提升准确率",
+  "识别结果可直接复制或导出使用",
 ];
-
-// 从环境变量读取OCR服务地址
-const OCR_SERVICE_URL = process.env.NEXT_PUBLIC_OCR_SERVICE_URL || 'ws://localhost:8000';
 
 export default function OCRToolPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [mode, setMode] = useState<OCRMode>("normal");
-  const [modelSize, setModelSize] = useState<ModelSize>("base");
   const [result, setResult] = useState<OCRResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const previewRef = useRef<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (previewRef.current && previewRef.current !== previewUrl) {
@@ -89,7 +52,6 @@ export default function OCRToolPage() {
 
     // 保存当前的ref值，以便在cleanup中使用
     const currentTimer = timerRef.current;
-    const currentWs = wsRef.current;
 
     return () => {
       if (previewRef.current) {
@@ -97,10 +59,6 @@ export default function OCRToolPage() {
       }
       if (currentTimer) {
         clearTimeout(currentTimer);
-      }
-      // 清理WebSocket连接
-      if (currentWs) {
-        currentWs.close();
       }
     };
   }, [previewUrl]);
@@ -132,135 +90,55 @@ export default function OCRToolPage() {
       return;
     }
 
-    // 检查是否配置了OCR服务
-    if (!process.env.NEXT_PUBLIC_OCR_SERVICE_URL) {
-      toast.error("OCR服务未配置，使用Mock数据演示");
-      // 使用Mock数据
-      setIsProcessing(true);
-      setStatusMessage("使用Mock数据演示中...");
-      setResult(null);
-
-      setTimeout(() => {
-        const base = mockOCRResults[mode];
-        const nextResult: OCRResult = {
-          ...base,
-          id: `${base.id}-${modelSize}`,
-          modelSize: modelSize,
-          processTime: 3000,
-          text: `${base.text}\n\n—— 模式：${modeOptions.find((item) => item.value === mode)?.label} · 模型：${
-            modelOptions.find((item) => item.value === modelSize)?.label
-          }`,
-        };
-        setResult(nextResult);
-        setIsProcessing(false);
-        setStatusMessage("");
-        toast.success("Mock识别完成");
-      }, 3000);
-      return;
-    }
-
     setIsProcessing(true);
     setResult(null);
-    setStatusMessage("正在连接OCR服务...");
+    setStatusMessage("正在处理图片...");
 
     try {
       // 转换图片为base64
       const imageBase64 = await fileToBase64(imageFile);
 
-      // 生成任务ID
-      const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-
-      // 构建WebSocket URL
-      const wsUrl = OCR_SERVICE_URL.replace(/^http/, 'ws').replace(/^https/, 'wss') + '/ws/ocr';
-
-      // 创建WebSocket连接
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      // 连接超时检测
-      const connectionTimeout = setTimeout(() => {
-        if (ws.readyState !== WebSocket.OPEN) {
-          ws.close();
-          setIsProcessing(false);
-          setStatusMessage("");
-          toast.error("连接OCR服务超时");
-        }
-      }, 10000);
-
-      ws.onopen = () => {
-        clearTimeout(connectionTimeout);
-        setStatusMessage("已连接，正在发送图片...");
-
-        // 发送OCR请求
-        ws.send(JSON.stringify({
-          task_id: taskId,
+      // 调用OCR API
+      const response = await fetch("/api/ocr/recognize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           image: imageBase64,
-          prompt_type: MODE_TO_PROMPT[mode],
-          model_size: MODEL_TO_SIZE[modelSize],
-        }));
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "识别失败");
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || "识别失败");
+      }
+
+      // 构建OCR结果
+      const ocrResult: OCRResult = {
+        id: `ocr_${Date.now()}`,
+        mode: "structured",
+        modelSize: "base",
+        text: data.data.text,
+        confidence: 0.95, // 固定置信度
+        processTime: data.data.inferenceTime * 1000, // 转换为毫秒
+        createdAt: new Date().toISOString(),
       };
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        if (data.type === 'status') {
-          // 显示状态消息
-          setStatusMessage(data.message);
-        }
-
-        if (data.type === 'chunk') {
-          // 流式输出（实时显示识别进度）
-          setStatusMessage("正在识别中...");
-        }
-
-        if (data.type === 'complete') {
-          // 识别完成
-          const ocrResult: OCRResult = {
-            id: taskId,
-            mode: mode,
-            modelSize: modelSize,
-            text: data.result,
-            confidence: 0.95, // 后端没返回置信度，给个默认值
-            processTime: data.inference_time * 1000, // 转换为毫秒
-            createdAt: new Date().toISOString(),
-          };
-
-          setResult(ocrResult);
-          setIsProcessing(false);
-          setStatusMessage("");
-          ws.close();
-          toast.success(`识别完成（耗时 ${data.inference_time.toFixed(2)}s）`);
-        }
-
-        if (data.type === 'error') {
-          // 识别失败
-          setIsProcessing(false);
-          setStatusMessage("");
-          ws.close();
-          toast.error(`识别失败: ${data.error}`);
-        }
-      };
-
-      ws.onerror = () => {
-        clearTimeout(connectionTimeout);
-        setIsProcessing(false);
-        setStatusMessage("");
-        toast.error("OCR服务连接错误，请检查服务是否启动");
-      };
-
-      ws.onclose = (event) => {
-        clearTimeout(connectionTimeout);
-        if (isProcessing && event.code !== 1000) {
-          setIsProcessing(false);
-          setStatusMessage("");
-          toast.error("连接意外断开");
-        }
-      };
-
+      setResult(ocrResult);
+      setIsProcessing(false);
+      setStatusMessage("");
+      toast.success(`识别完成（耗时 ${data.data.inferenceTime.toFixed(2)}s）`);
     } catch (error) {
       setIsProcessing(false);
       setStatusMessage("");
-      toast.error(`处理异常: ${String(error)}`);
+      toast.error(`识别失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -300,8 +178,8 @@ export default function OCRToolPage() {
           </div>
 
           <div className="flex flex-1 flex-col gap-4 overflow-hidden">
-            <div className="grid flex-1 min-h-0 grid-cols-[1.05fr,0.95fr] grid-rows-[260px_minmax(0,1fr)] gap-4">
-              <Card className="row-span-1">
+            <div className="grid flex-1 min-h-0 grid-cols-2 gap-4">
+              <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-4">
                   <Label className="mb-3 text-sm font-medium">上传图像</Label>
                   <div className="flex-1">
@@ -310,67 +188,7 @@ export default function OCRToolPage() {
               </CardContent>
             </Card>
 
-            <div className="row-start-2 row-end-3 grid grid-cols-2 gap-4 h-full">
-              <Card>
-                <CardContent className="space-y-3 p-5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">识别类型</Label>
-                    <BadgeCheck className="h-4 w-4 text-primary" />
-                  </div>
-                  <RadioGroup
-                    value={mode}
-                    onValueChange={(value) => setMode(value as OCRMode)}
-                    className="grid grid-cols-2 gap-3"
-                  >
-                    {modeOptions.map((option) => (
-                      <label
-                        key={option.value}
-                        htmlFor={option.value}
-                        className={cn(
-                          "flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2 text-left transition-colors",
-                          mode === option.value ? "border-primary bg-primary/5 shadow-sm" : "border-muted hover:bg-muted/70"
-                        )}
-                      >
-                        <RadioGroupItem className="sr-only" id={option.value} value={option.value} />
-                        <span className="text-sm font-medium">{option.label}</span>
-                        <span className="text-xs text-muted-foreground">{option.description}</span>
-                      </label>
-                    ))}
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="space-y-3 p-5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">模型大小</Label>
-                    <Shield className="h-4 w-4 text-primary" />
-                  </div>
-                  <RadioGroup
-                    value={modelSize}
-                    onValueChange={(value) => setModelSize(value as ModelSize)}
-                    className="grid grid-cols-2 gap-3"
-                  >
-                    {modelOptions.map((option) => (
-                      <label
-                        key={option.value}
-                        htmlFor={option.value}
-                        className={cn(
-                          "flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2 text-left transition-colors",
-                          modelSize === option.value ? "border-primary bg-primary/5 shadow-sm" : "border-muted hover:bg-muted/70"
-                        )}
-                      >
-                        <RadioGroupItem className="sr-only" id={option.value} value={option.value} />
-                        <span className="text-sm font-medium">{option.label}</span>
-                        <span className="text-xs text-muted-foreground">{option.description}</span>
-                      </label>
-                    ))}
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="col-start-2 row-span-2 flex min-h-0 flex-col">
+            <Card className="flex min-h-0 flex-col">
               <CardContent className="flex flex-1 flex-col p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <Label className="text-sm font-semibold">识别结果</Label>

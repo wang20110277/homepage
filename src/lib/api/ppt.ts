@@ -7,20 +7,14 @@ import type { ApiResponse } from "@/lib/core/types";
 
 /**
  * PPT generation request parameters
+ * Simplified to match actual Presenton API v1/ppt/generate
+ * Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Export format is hardcoded to "pptx"
+ * Template is hardcoded to "general"
  */
 export interface GeneratePptRequest {
   content: string;
   n_slides?: number;
-  language?: string;
-  template?: string;
-  tone?: "default" | "professional" | "casual" | "academic" | "creative";
-  verbosity?: "concise" | "standard" | "detailed";
-  image_type?: "stock" | "ai" | "none";
-  web_search?: boolean;
-  include_table_of_contents?: boolean;
-  include_title_slide?: boolean;
-  files?: string[];
-  export_as?: "pptx" | "pdf";
   async?: boolean;
 }
 

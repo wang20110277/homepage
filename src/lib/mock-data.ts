@@ -71,20 +71,23 @@ export const mockAnnouncements: Announcement[] = [
   {
     id: "ann-005",
     title: "🎉 项目更新 - v1.0.1",
-    content: `**✨ 功能更新**
+    content: `**🎨 UI更新**
+- 🎨 全新**暖色皮肤**，深色/浅色主题自适应
+- 📝 全新 **Markdown 渲染**引擎，代码，表格显示更美观
+- 💬 优化**消息气泡**显示，改进聊天界面布局和交互流畅度
+- 📱 新增**响应式侧边栏**组件，支持展开/折叠
 
-- 全新暖色皮肤，深色/浅色主题自适应
-- 全新 Markdown 渲染引擎，代码，表格显示更美观
-- 优化消息气泡显示，改进聊天界面布局和交互流畅度
-- 新增响应式侧边栏组件，支持展开/折叠
-- 全新上线deepseekOCR应用，一键提取文本
+**🚀 应用上线**
+- 👁️ 全新上线 **deepseekOCR** 应用，一键提取文本
+- 📊 全新上线 **PPT生成**应用，一键生成企业级PPT
+- 🔍 全新上线**质检查询**应用，根据关键字查询质检信息
 
 ---
 
-> **⏳ 后续待更新**
+> **⏳ 后续待更新：**
 >
-> - 天眼查应用，实时获取企业信息，生成尽调报告
-> - PPT生成应用，一键生成企业级文档`,
+> - 🏢 **天眼查应用**，实时获取企业信息，生成尽调报告
+> - 📄 **文件对比应用**，一键对比多个文件在风控，内容的差异`,
     priority: "high",
     publishedAt: "2026-01-05T10:00:00Z",
     type: "success",
@@ -123,12 +126,13 @@ export const mockAnnouncements: Announcement[] = [
   },
 ];
 
-// Mock PPT 模板数据
+// Mock PPT 演示提示词数据
 export const mockPPTTemplates: PPTTemplate[] = [
+  // 通用主题
   {
-    id: "tpl-001",
-    name: "商务报告模板",
-    description: "适合企业年度报告、季度总结等正式场合使用",
+    id: "prompt-001",
+    name: "商务报告",
+    description: "创建一份关于企业年度报告或季度总结的演示文稿",
     thumbnail: "https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Business+Report",
     theme: "business",
     colorScheme: "blue-gray",
@@ -138,10 +142,10 @@ export const mockPPTTemplates: PPTTemplate[] = [
     createdAt: "2025-10-15T10:00:00Z",
   },
   {
-    id: "tpl-002",
-    name: "创意设计展示",
-    description: "充满创意的设计，适合产品发布会、设计展示",
-    thumbnail: "https://via.placeholder.com/300x200/EC4899/FFFFFF?text=Creative+Design",
+    id: "prompt-002",
+    name: "产品发布",
+    description: "准备一场产品发布会或设计展示的演示文稿",
+    thumbnail: "https://via.placeholder.com/300x200/EC4899/FFFFFF?text=Product+Launch",
     theme: "creative",
     colorScheme: "pink-purple",
     slideCount: 15,
@@ -150,10 +154,10 @@ export const mockPPTTemplates: PPTTemplate[] = [
     createdAt: "2025-10-18T14:30:00Z",
   },
   {
-    id: "tpl-003",
-    name: "简约风格模板",
-    description: "极简设计风格，突出内容本身",
-    thumbnail: "https://via.placeholder.com/300x200/10B981/FFFFFF?text=Minimal+Style",
+    id: "prompt-003",
+    name: "项目总结",
+    description: "总结项目成果和经验的简约演示文稿",
+    thumbnail: "https://via.placeholder.com/300x200/10B981/FFFFFF?text=Project+Summary",
     theme: "simple",
     colorScheme: "green-white",
     slideCount: 10,
@@ -162,10 +166,10 @@ export const mockPPTTemplates: PPTTemplate[] = [
     createdAt: "2025-10-20T09:00:00Z",
   },
   {
-    id: "tpl-004",
-    name: "科技风格模板",
-    description: "现代科技感设计，适合技术分享、产品介绍",
-    thumbnail: "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=Tech+Style",
+    id: "prompt-004",
+    name: "技术分享",
+    description: "制作技术分享或产品介绍的演示文稿",
+    thumbnail: "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=Tech+Talk",
     theme: "modern",
     colorScheme: "blue-dark",
     slideCount: 25,
@@ -174,9 +178,9 @@ export const mockPPTTemplates: PPTTemplate[] = [
     createdAt: "2025-10-22T16:45:00Z",
   },
   {
-    id: "tpl-005",
-    name: "教育培训模板",
-    description: "专为教育培训场景设计，清晰易读",
+    id: "prompt-005",
+    name: "教育培训",
+    description: "设计教育培训课程或讲座的演示文稿",
     thumbnail: "https://via.placeholder.com/300x200/F59E0B/FFFFFF?text=Education",
     theme: "simple",
     colorScheme: "orange-yellow",
@@ -184,6 +188,128 @@ export const mockPPTTemplates: PPTTemplate[] = [
     category: "教育",
     tags: ["教育", "培训", "课程"],
     createdAt: "2025-10-25T11:20:00Z",
+  },
+
+  // 消费金融专题
+  {
+    id: "prompt-cf-001",
+    name: "消金年度报告",
+    description: "制作一份消费金融公司年度经营报告，包括业务规模、资产质量、盈利能力等核心指标分析",
+    thumbnail: "https://via.placeholder.com/300x200/8B5CF6/FFFFFF?text=Annual+Report",
+    theme: "business",
+    colorScheme: "purple-blue",
+    slideCount: 25,
+    category: "消费金融",
+    tags: ["金融", "报告", "数据分析"],
+    createdAt: "2025-10-26T10:00:00Z",
+  },
+  {
+    id: "prompt-cf-002",
+    name: "风险管理体系",
+    description: "介绍消费金融公司的全面风险管理体系，涵盖信用风险、操作风险、流动性风险等多维度管控措施",
+    thumbnail: "https://via.placeholder.com/300x200/EF4444/FFFFFF?text=Risk+Management",
+    theme: "business",
+    colorScheme: "red-gray",
+    slideCount: 20,
+    category: "消费金融",
+    tags: ["风控", "合规", "管理"],
+    createdAt: "2025-10-27T11:00:00Z",
+  },
+  {
+    id: "prompt-cf-003",
+    name: "信贷产品发布",
+    description: "发布新的消费信贷产品，介绍产品特色、目标客群、额度利率、申请流程及竞争优势",
+    thumbnail: "https://via.placeholder.com/300x200/06B6D4/FFFFFF?text=Credit+Product",
+    theme: "creative",
+    colorScheme: "cyan-blue",
+    slideCount: 15,
+    category: "消费金融",
+    tags: ["产品", "信贷", "营销"],
+    createdAt: "2025-10-28T09:30:00Z",
+  },
+  {
+    id: "prompt-cf-004",
+    name: "合规管理培训",
+    description: "开展消费金融行业合规培训，解读监管政策、反洗钱要求、消费者权益保护等法律法规",
+    thumbnail: "https://via.placeholder.com/300x200/059669/FFFFFF?text=Compliance",
+    theme: "simple",
+    colorScheme: "green-white",
+    slideCount: 30,
+    category: "消费金融",
+    tags: ["培训", "合规", "法规"],
+    createdAt: "2025-10-29T14:00:00Z",
+  },
+  {
+    id: "prompt-cf-005",
+    name: "数字化转型战略",
+    description: "阐述消费金融公司的数字化转型战略，包括智能风控、线上获客、大数据应用等创新举措",
+    thumbnail: "https://via.placeholder.com/300x200/7C3AED/FFFFFF?text=Digital+Transformation",
+    theme: "modern",
+    colorScheme: "purple-dark",
+    slideCount: 20,
+    category: "消费金融",
+    tags: ["数字化", "科技", "创新"],
+    createdAt: "2025-10-30T10:30:00Z",
+  },
+  {
+    id: "prompt-cf-006",
+    name: "资产质量分析",
+    description: "深入分析消费金融资产质量，包括不良率、逾期率、拨备覆盖率、资产分层等关键指标",
+    thumbnail: "https://via.placeholder.com/300x200/DC2626/FFFFFF?text=Asset+Quality",
+    theme: "business",
+    colorScheme: "red-blue",
+    slideCount: 18,
+    category: "消费金融",
+    tags: ["资产", "质量", "分析"],
+    createdAt: "2025-10-31T11:30:00Z",
+  },
+  {
+    id: "prompt-cf-007",
+    name: "客户服务优化",
+    description: "提升消费金融客户服务质量，优化客户体验、投诉处理、满意度管理等服务流程",
+    thumbnail: "https://via.placeholder.com/300x200/F97316/FFFFFF?text=Customer+Service",
+    theme: "simple",
+    colorScheme: "orange-white",
+    slideCount: 16,
+    category: "消费金融",
+    tags: ["客服", "体验", "优化"],
+    createdAt: "2025-11-01T09:00:00Z",
+  },
+  {
+    id: "prompt-cf-008",
+    name: "市场拓展计划",
+    description: "制定消费金融业务市场拓展计划，分析目标市场、竞争格局、渠道策略及增长目标",
+    thumbnail: "https://via.placeholder.com/300x200/0891B2/FFFFFF?text=Market+Expansion",
+    theme: "business",
+    colorScheme: "cyan-gray",
+    slideCount: 22,
+    category: "消费金融",
+    tags: ["市场", "拓展", "战略"],
+    createdAt: "2025-11-02T10:00:00Z",
+  },
+  {
+    id: "prompt-cf-009",
+    name: "反欺诈体系建设",
+    description: "构建消费金融反欺诈体系，介绍欺诈识别技术、黑名单管理、设备指纹、生物识别等防控手段",
+    thumbnail: "https://via.placeholder.com/300x200/BE123C/FFFFFF?text=Anti-Fraud",
+    theme: "modern",
+    colorScheme: "red-dark",
+    slideCount: 20,
+    category: "消费金融",
+    tags: ["安全", "反欺诈", "技术"],
+    createdAt: "2025-11-03T13:00:00Z",
+  },
+  {
+    id: "prompt-cf-010",
+    name: "智能催收策略",
+    description: "设计智能化催收策略，运用AI外呼、分层管理、柔性催收等方式提升回收率并保护客户体验",
+    thumbnail: "https://via.placeholder.com/300x200/0D9488/FFFFFF?text=Collection+Strategy",
+    theme: "business",
+    colorScheme: "teal-gray",
+    slideCount: 18,
+    category: "消费金融",
+    tags: ["催收", "智能", "策略"],
+    createdAt: "2025-11-04T14:30:00Z",
   },
 ];
 

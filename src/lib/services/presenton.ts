@@ -24,71 +24,17 @@ const presentonClient = createHttpClient({
 });
 
 /**
- * Supported tones for presentation generation
- */
-export type PresentationTone =
-  | "default"
-  | "professional"
-  | "casual"
-  | "academic"
-  | "creative";
-
-/**
- * Supported verbosity levels
- */
-export type PresentationVerbosity = "concise" | "standard" | "detailed";
-
-/**
- * Supported image types
- */
-export type ImageType = "stock" | "ai" | "none";
-
-/**
- * Supported export formats
- */
-export type ExportFormat = "pptx" | "pdf";
-
-/**
  * Input parameters for PPT generation
- * Matches the actual Presenton API
+ * Simplified to match actual Presenton API v1/ppt/generate
+ * Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Export format is hardcoded to "pptx"
+ * Template is hardcoded to "general"
  */
 export interface GeneratePptInput {
   /** Main content/topic for the presentation */
   content: string;
-  /** Pre-defined slides markdown (optional) */
-  slides_markdown?: string[];
-  /** Additional instructions for generation */
-  instructions?: string;
-  /** Tone of the presentation */
-  tone?: PresentationTone;
-  /** Level of detail in content */
-  verbosity?: PresentationVerbosity;
-  /** Use markdown emphasis in content */
-  markdown_emphasis?: boolean;
-  /** Enable web search for content */
-  web_search?: boolean;
-  /** Type of images to use */
-  image_type?: ImageType;
-  /** Theme name or ID */
-  theme?: string;
   /** Number of slides to generate (default 8) */
   n_slides?: number;
-  /** Language for the presentation (e.g., "English", "Chinese", "Japanese") */
-  language?: string;
-  /** Template to use (e.g., "general", "business", "education") */
-  template?: string;
-  /** Include table of contents slide */
-  include_table_of_contents?: boolean;
-  /** Include title slide */
-  include_title_slide?: boolean;
-  /** Allow access to user info */
-  allow_access_to_user_info?: boolean;
-  /** Array of file IDs (from previous upload) */
-  files?: string[];
-  /** Export format */
-  export_as?: ExportFormat;
-  /** Trigger webhook on completion */
-  trigger_webhook?: boolean;
 }
 
 /**
@@ -230,9 +176,18 @@ function validateGeneratePptInput(input: GeneratePptInput): void {
 /**
  * Generate a PPT presentation synchronously
  *
- * @param input - Generation parameters
+ * Calls the simplified PPT generation API
+ * POST /v1/ppt/generate
+ * Body: { content, n_slides, language, template, export_as }
+ * Response: { url: "download_url" }
+ *
+ * Note: Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Note: Export format is hardcoded to "pptx"
+ * Note: Template is hardcoded to "general"
+ *
+ * @param input - Generation parameters (content, n_slides)
  * @param traceId - Optional trace ID for logging
- * @returns Generated presentation result
+ * @returns Generated presentation result with download URL
  * @throws PresentonServiceError if generation fails
  */
 export async function generatePpt(
@@ -243,9 +198,6 @@ export async function generatePpt(
 
   logInfo(logTraceId, "Starting sync PPT generation", {
     nSlides: input.n_slides,
-    language: input.language,
-    template: input.template,
-    tone: input.tone,
     contentLength: input.content?.length || 0,
     contentPreview: input.content?.substring(0, 100) || "NO_CONTENT",
   });
@@ -254,44 +206,44 @@ export async function generatePpt(
   validateGeneratePptInput(input);
 
   try {
-    // Build request body with defaults
+    // Build simplified request body for new API
     const requestBody = {
       content: input.content,
-      slides_markdown: input.slides_markdown,
-      instructions: input.instructions,
-      tone: input.tone || "default",
-      verbosity: input.verbosity || "standard",
-      markdown_emphasis: input.markdown_emphasis ?? true,
-      web_search: input.web_search ?? false,
-      image_type: input.image_type || "stock",
-      theme: input.theme,
       n_slides: input.n_slides || 8,
-      language: input.language || "English",
-      template: input.template || "general",
-      include_table_of_contents: input.include_table_of_contents ?? false,
-      include_title_slide: input.include_title_slide ?? true,
-      allow_access_to_user_info: input.allow_access_to_user_info ?? true,
-      files: input.files || [],
-      export_as: input.export_as || "pptx",
-      trigger_webhook: input.trigger_webhook ?? false,
+      language: "Chinese (Simplified - 中文, 汉语)",
+      template: "general", // Always use "general" template
+      export_as: "pptx", // Always export as PPTX
     };
 
-    // Call Presenton API
-    const response = await presentonClient.post<PresentationData>(
-      "/api/v1/ppt/presentation/generate",
+    logInfo(logTraceId, "Calling new PPT generation API", requestBody);
+
+    // Call new PPT generation API
+    const response = await presentonClient.post<{ url: string }>(
+      "/v1/ppt/generate",
       requestBody,
       { traceId }
     );
 
+    // Check if response has URL
+    if (!response.url) {
+      throw new PresentonServiceError(
+        "INVALID_RESPONSE",
+        "PPT generation response missing download URL",
+        response,
+        logTraceId
+      );
+    }
+
     const result: GeneratePptResult = {
-      presentation: response,
-      downloadUrl: response.download_url,
-      previewUrl: response.preview_url,
+      presentation: {
+        id: `ppt-${Date.now()}`, // Generate a temporary ID
+        download_url: response.url,
+      },
+      downloadUrl: response.url,
     };
 
     logInfo(logTraceId, "PPT generation completed successfully", {
-      presentationId: response.id,
-      slidesCount: response.slides?.length,
+      downloadUrl: response.url,
     });
 
     return result;
@@ -303,6 +255,11 @@ export async function generatePpt(
 /**
  * Generate a PPT presentation asynchronously
  * Returns a task ID that can be used to check status
+ *
+ * Note: This uses the old async API endpoint which may support more parameters
+ * Note: Language is hardcoded to "Chinese (Simplified - 中文, 汉语)"
+ * Note: Export format is hardcoded to "pptx"
+ * Note: Template is hardcoded to "general"
  */
 export async function generatePptAsync(
   input: GeneratePptInput,
@@ -312,8 +269,6 @@ export async function generatePptAsync(
 
   logInfo(logTraceId, "Starting async PPT generation", {
     nSlides: input.n_slides,
-    language: input.language,
-    template: input.template,
   });
 
   validateGeneratePptInput(input);
@@ -321,23 +276,10 @@ export async function generatePptAsync(
   try {
     const requestBody = {
       content: input.content,
-      slides_markdown: input.slides_markdown,
-      instructions: input.instructions,
-      tone: input.tone || "default",
-      verbosity: input.verbosity || "standard",
-      markdown_emphasis: input.markdown_emphasis ?? true,
-      web_search: input.web_search ?? false,
-      image_type: input.image_type || "stock",
-      theme: input.theme,
       n_slides: input.n_slides || 8,
-      language: input.language || "English",
-      template: input.template || "general",
-      include_table_of_contents: input.include_table_of_contents ?? false,
-      include_title_slide: input.include_title_slide ?? true,
-      allow_access_to_user_info: input.allow_access_to_user_info ?? true,
-      files: input.files || [],
-      export_as: input.export_as || "pptx",
-      trigger_webhook: input.trigger_webhook ?? false,
+      language: "Chinese (Simplified - 中文, 汉语)",
+      template: "general", // Always use "general" template
+      export_as: "pptx",
     };
 
     const response = await presentonClient.post<{ task_id: string }>(
@@ -393,19 +335,16 @@ export async function checkGenerationStatus(
 /**
  * Get all available templates
  */
-export async function getTemplates(
-  traceId?: string
-): Promise<TemplateInfo[]> {
+export async function getTemplates(traceId?: string): Promise<TemplateInfo[]> {
   const logTraceId = traceId || "no-trace";
 
   logInfo(logTraceId, "Fetching templates");
 
   try {
-    const response =
-      await presentonClient.get<TemplateInfo[]>(
-        "/api/v1/ppt/template/all",
-        { traceId }
-      );
+    const response = await presentonClient.get<TemplateInfo[]>(
+      "/api/v1/ppt/template/all",
+      { traceId }
+    );
 
     logInfo(logTraceId, "Templates fetched successfully", {
       count: response.length,
@@ -546,7 +485,7 @@ export async function getPresentationById(
  */
 export async function exportPresentation(
   presentationId: string,
-  format: ExportFormat = "pptx",
+  format: "pptx" | "pdf" = "pptx",
   traceId?: string
 ): Promise<{ download_url: string }> {
   const logTraceId = traceId || "no-trace";
@@ -598,9 +537,7 @@ export async function exportPresentation(
 /**
  * Check Presenton service health
  */
-export async function checkPresentonHealth(
-  traceId?: string
-): Promise<boolean> {
+export async function checkPresentonHealth(traceId?: string): Promise<boolean> {
   const logTraceId = traceId || "health-check";
 
   try {
@@ -649,8 +586,7 @@ function handlePresentonError(
   }
 
   // Unknown error
-  const errorMessage =
-    error instanceof Error ? error.message : "Unknown error";
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
   logError(traceId, `Unknown error during ${operation}`, {
     error: errorMessage,
   });
