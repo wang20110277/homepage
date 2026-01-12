@@ -56,6 +56,7 @@ const basePermissions = [
   { resource: "ppt", action: "delete", description: "Delete PPT" },
   { resource: "ocr", action: "read", description: "Use OCR recognition" },
   { resource: "tianyancha", action: "read", description: "Query company info" },
+  { resource: "qualityCheck", action: "read", description: "Query quality audit results" },
 ];
 
 interface SeedOptions {

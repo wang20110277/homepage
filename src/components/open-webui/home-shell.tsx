@@ -41,7 +41,7 @@ export function OpenWebuiHomeShell({ userName, tools }: OpenWebuiHomeShellProps)
   } = useSidebarState();
 
   return (
-    <div className="flex flex-col h-screen pt-20">
+    <div className="flex flex-col h-full">
       <OpenWebuiModelsProvider>
         <div className="flex-1 flex gap-4 px-6 py-6 overflow-hidden">
           {/* 左侧边栏 - 对话列表 */}

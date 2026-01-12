@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 
-export type ToolId = "ppt" | "ocr" | "tianyancha";
+export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck";
 
 const TOOL_PERMISSION_MAP: Record<
   ToolId,
@@ -11,6 +11,7 @@ const TOOL_PERMISSION_MAP: Record<
   ppt: { resource: "ppt", action: "read" },
   ocr: { resource: "ocr", action: "read" },
   tianyancha: { resource: "tianyancha", action: "read" },
+  qualityCheck: { resource: "qualityCheck", action: "read" },
 };
 
 interface AccessResult {
@@ -148,8 +149,18 @@ function evaluateAccess(
     return { allowed: false, reason: "Disabled for tenant" };
   }
 
+  // If tenant has enabled the feature, check user permissions
   const required = TOOL_PERMISSION_MAP[toolId];
-  if (!snapshot.permissions.has(toPermissionKey(required.resource, required.action))) {
+  const hasPermission = snapshot.permissions.has(toPermissionKey(required.resource, required.action));
+
+  // Allow access if:
+  // 1. User has the required permission (via role), OR
+  // 2. Tenant explicitly enabled the feature (treating it as default access for all users)
+  if (!hasPermission) {
+    // If feature is explicitly enabled (not undefined/null), grant access even without role
+    if (featureEnabled === true) {
+      return { allowed: true };
+    }
     return { allowed: false, reason: "Role required" };
   }
 

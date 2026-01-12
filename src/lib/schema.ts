@@ -8,6 +8,9 @@ import {
   primaryKey,
   uniqueIndex,
   index,
+  serial,
+  integer,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -34,8 +37,9 @@ export const tenants = pgTable("tenants", {
       ppt: boolean;
       ocr: boolean;
       tianyancha: boolean;
+      qualityCheck: boolean;
     }>()
-    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true}'::jsonb`)
+    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true}'::jsonb`)
     .notNull(),
 });
 
@@ -232,3 +236,16 @@ export const rolePermissionRelations = relations(rolePermissions, ({ one }) => (
     references: [permissions.id],
   }),
 }));
+
+// ============================================================================
+// Collection Audit Results Table
+// ============================================================================
+export const collectionAuditResults = pgTable("collection_audit_results", {
+  id: serial("id").primaryKey(),
+  collId: varchar("coll_id", { length: 255 }),
+  dateFolder: varchar("date_folder", { length: 50 }),
+  score: integer("score"),
+  deductions: text("deductions"),
+  txtFilename: varchar("txt_filename", { length: 255 }),
+  processedAt: timestamp("processed_at").defaultNow(),
+});

@@ -127,3 +127,14 @@ export interface DueDiligenceReport {
     personnel: boolean;
   };
 }
+
+// 质检审核结果类型
+export interface QualityAuditResult {
+  id: number;
+  collId: string | null;
+  dateFolder: string | null;
+  score: number | null;
+  deductions: string | null;
+  txtFilename: string | null;
+  processedAt: Date | null;
+}

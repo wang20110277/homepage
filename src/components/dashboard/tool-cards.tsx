@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Presentation, ScanText, Building2, ArrowRight } from "lucide-react";
+import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck } from "lucide-react";
 
 const tools = [
   {
@@ -32,6 +32,15 @@ const tools = [
     href: "/tools/tianyancha",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
+  },
+  {
+    id: "quality-check",
+    title: "质检结果查询",
+    description: "查询质检审核结果，支持多字段条件检索",
+    icon: ClipboardCheck,
+    href: "/tools/quality-check",
+    color: "text-orange-500",
+    bgColor: "bg-orange-500/10",
   },
 ];
 

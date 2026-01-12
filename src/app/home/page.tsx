@@ -28,6 +28,12 @@ const tools: Array<{
     description: "企业信息查询和背景调查",
     href: "/tools/tianyancha",
   },
+  {
+    id: "qualityCheck",
+    name: "质检结果查询",
+    description: "查询质检审核结果数据",
+    href: "/tools/quality-check",
+  },
 ];
 
 export default async function HomePage() {
@@ -51,7 +57,7 @@ export default async function HomePage() {
   }));
 
   return (
-    <main className="w-full h-full">
+    <main className="w-full h-[calc(100vh-72px)]">
       <OpenWebuiHomeShell
         userName={session.user.name ?? "成员"}
         tools={toolStatuses}

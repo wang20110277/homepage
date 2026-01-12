@@ -84,7 +84,13 @@
       "Bash(New-Item -ItemType Directory -Path \"C:\\Users\\wj_ds\\.claude\\statusline\" -Force)",
       "Bash(Copy-Item -Path \"C:\\Users\\wj_ds\\Desktop\\homepage\\statusline\\statusline.ps1\" -Destination \"C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1\")",
       "Bash(Test-Path \"C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python:*)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(Remove-Item \"drizzle\\0002_crazy_hawkeye.sql\")",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(npx tsx:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
@@ -93,5 +99,9 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ]
+  ],
+  "statusLine": {
+    "type": "command",
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$input | powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1'\""
+  }
 }

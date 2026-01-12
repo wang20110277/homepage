@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-type ToolFeature = "ppt" | "ocr" | "tianyancha";
+type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck";
 
 const TOOL_DEFINITIONS: Array<{
   id: ToolFeature;
@@ -30,6 +30,11 @@ const TOOL_DEFINITIONS: Array<{
     name: "Tianyancha Lookup",
     description: "Provide access to company background research tools.",
   },
+  {
+    id: "qualityCheck",
+    name: "Quality Check Query",
+    description: "Enable quality audit result query and retrieval.",
+  },
 ];
 
 function normalizeFeatures(
@@ -39,6 +44,7 @@ function normalizeFeatures(
     ppt: Boolean(input?.ppt ?? true),
     ocr: Boolean(input?.ocr ?? true),
     tianyancha: Boolean(input?.tianyancha ?? true),
+    qualityCheck: Boolean(input?.qualityCheck ?? true),
   };
 }
 

@@ -1,6 +1,6 @@
 {
-  "id": "ea4623ac-d880-40f6-b638-9d04c39bb035",
-  "prevId": "be8eeeff-9146-4793-99dc-53db6a73e07a",
+  "id": "d644e115-8d61-4f90-9ca3-36623bb0e48a",
+  "prevId": "ea4623ac-d880-40f6-b638-9d04c39bb035",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,6 +111,62 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.collection_audit_results": {
+      "name": "collection_audit_results",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "coll_id": {
+          "name": "coll_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_folder": {
+          "name": "date_folder",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deductions": {
+          "name": "deductions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "txt_filename": {
+          "name": "txt_filename",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -475,7 +531,7 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"ppt\":true,\"ocr\":true,\"tianyancha\":true}'::jsonb"
+          "default": "'{\"ppt\":true,\"ocr\":true,\"tianyancha\":true,\"qualityCheck\":true}'::jsonb"
         }
       },
       "indexes": {},
