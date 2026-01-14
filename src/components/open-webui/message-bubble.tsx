@@ -30,21 +30,21 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       className={cn(
         "rounded-2xl border px-4 py-3 text-sm shadow-sm break-words",
         isAssistant
-          ? "border-primary/30 bg-primary/5"
-          : "border-white/10 bg-white/5"
+          ? "border-primary/30 bg-primary/5 dark:border-primary/40 dark:bg-primary/10"
+          : "border-border/50 bg-muted/30 dark:border-border dark:bg-muted/50"
       )}
     >
-      <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="mb-1 flex items-center justify-between text-xs">
         <span className="font-medium text-foreground">
           {MESSAGE_ROLES[message.role] || message.role}
         </span>
         {message.createdAt && (
-          <span>
+          <span className="text-muted-foreground">
             {format(new Date(message.createdAt), "MMM d, HH:mm")}
           </span>
         )}
       </div>
-      <div className="prose max-w-none text-sm [&>*]:my-3 overflow-x-auto">
+      <div className="prose dark:prose-invert max-w-none text-sm text-foreground [&>*]:my-3 overflow-x-auto">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeSanitize]}
