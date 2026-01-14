@@ -39,6 +39,28 @@ const GeneratePptSchema = z.object({
 });
 
 /**
+ * Convert HTTP download URLs to HTTPS proxy URLs
+ * This prevents mixed content issues when frontend is HTTPS but Presenton is HTTP
+ */
+function convertToProxyUrl(url: string | undefined, appUrl: string): string | undefined {
+  if (!url) return undefined;
+
+  try {
+    const parsedUrl = new URL(url);
+    // Only proxy HTTP URLs (HTTPS URLs are fine as-is)
+    if (parsedUrl.protocol === "http:") {
+      const proxyUrl = new URL("/api/ppt/download", appUrl);
+      proxyUrl.searchParams.set("url", url);
+      return proxyUrl.toString();
+    }
+    return url;
+  } catch {
+    // If URL parsing fails, return original
+    return url;
+  }
+}
+
+/**
  * POST /api/ppt/generate
  *
  * Generate a PPT presentation using Presenton service
@@ -118,7 +140,29 @@ const handler: BffRouteHandler = async (request: NextRequest, context) => {
       return ok(result, traceId);
     } else {
       const result = await generatePpt(generationInput, traceId);
-      return ok(result, traceId);
+
+      // Convert HTTP URLs to HTTPS proxy URLs to avoid mixed content issues
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL ||
+                     `${request.headers.get("x-forwarded-proto") || "https"}://${request.headers.get("host")}`;
+
+      const proxiedDownloadUrl = convertToProxyUrl(result.downloadUrl, appUrl);
+      const proxiedPresentationUrl = convertToProxyUrl(result.presentation.download_url, appUrl);
+
+      logInfo(traceId, "URL conversion applied", {
+        originalDownloadUrl: result.downloadUrl,
+        proxiedDownloadUrl,
+        originalPresentationUrl: result.presentation.download_url,
+        proxiedPresentationUrl,
+      });
+
+      return ok({
+        ...result,
+        downloadUrl: proxiedDownloadUrl,
+        presentation: {
+          ...result.presentation,
+          download_url: proxiedPresentationUrl,
+        },
+      }, traceId);
     }
   } catch (error) {
     if (error instanceof PresentonServiceError) {
@@ -161,3 +205,8 @@ const handler: BffRouteHandler = async (request: NextRequest, context) => {
 };
 
 export const POST = withOptionalAuth(handler);
+
+// Configure route segment to allow long-running PPT generation
+// Default is 60s in production, but PPT generation can take up to 10 minutes
+export const maxDuration = 600; // 10 minutes (matches PRESENTON_TIMEOUT)
+export const dynamic = "force-dynamic"; // Disable static optimization

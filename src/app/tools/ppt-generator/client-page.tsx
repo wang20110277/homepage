@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { mockPPTTemplates } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import {
   ArrowRight,
@@ -19,6 +20,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 import {
   generatePpt,
@@ -38,12 +41,21 @@ type GenerationStatus = "idle" | "generating" | "completed" | "error";
 export default function PPTGeneratorPage() {
   const [slideCount, setSlideCount] = useState(8);
   const [prompt, setPrompt] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   // Generation state
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [result, setResult] = useState<GeneratePptResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+
+  // Handle template click - fill prompt with description
+  const handleTemplateClick = (template: typeof mockPPTTemplates[0]) => {
+    if (!isGenerating) {
+      setSelectedTemplate(template.id);
+      setPrompt(template.description);
+    }
+  };
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) {
@@ -55,7 +67,7 @@ export default function PPTGeneratorPage() {
     setResult(null);
 
     try {
-      // Generate PPT
+      // Generate PPT (synchronous mode with extended timeout)
       setStatus("generating");
       setStatusMessage("正在生成演示文稿，请稍候...");
 
@@ -133,6 +145,104 @@ export default function PPTGeneratorPage() {
         />
       </section>
 
+      {/* Choose a prompt template */}
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <Label className="text-sm font-bold text-foreground">
+            选择演示主题（可选）
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            点击选择一个主题提示词，自动填充到输入框，您可以继续编辑完善
+          </p>
+        </div>
+
+        {/* 通用主题 */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">通用主题</h3>
+          </div>
+          <div className="grid grid-cols-5 gap-3">
+            {mockPPTTemplates.slice(0, 5).map((template) => (
+              <div
+                key={template.id}
+                onClick={() => handleTemplateClick(template)}
+                className={cn(
+                  "group cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md",
+                  selectedTemplate === template.id
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border bg-card hover:border-primary/50",
+                  isGenerating && "pointer-events-none opacity-50"
+                )}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className={cn(
+                      "h-4 w-4 transition-colors",
+                      selectedTemplate === template.id
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-primary"
+                    )} />
+                    <h4 className="font-semibold text-sm">{template.name}</h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">
+                    {template.description}
+                  </p>
+                  <div className="flex items-center gap-1 pt-1">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {template.category}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 消费金融主题 */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">消费金融专题</h3>
+          </div>
+          <div className="grid grid-cols-5 gap-3">
+            {mockPPTTemplates.slice(5).map((template) => (
+              <div
+                key={template.id}
+                onClick={() => handleTemplateClick(template)}
+                className={cn(
+                  "group cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md",
+                  selectedTemplate === template.id
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border bg-card hover:border-primary/50",
+                  isGenerating && "pointer-events-none opacity-50"
+                )}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className={cn(
+                      "h-4 w-4 transition-colors",
+                      selectedTemplate === template.id
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-primary"
+                    )} />
+                    <h4 className="font-semibold text-sm">{template.name}</h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">
+                    {template.description}
+                  </p>
+                  <div className="flex items-center gap-1 pt-1">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {template.category}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Status Message */}
       {statusMessage && (
         <div
@@ -199,12 +309,7 @@ export default function PPTGeneratorPage() {
                 asChild
                 className="bg-green-600 hover:bg-green-700"
               >
-                <a
-                  href={result.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                >
+                <a href={result.downloadUrl}>
                   <Download className="mr-2 h-4 w-4" />
                   下载演示文稿
                 </a>

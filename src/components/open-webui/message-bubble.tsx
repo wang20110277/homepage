@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { OpenWebuiMessage } from "@/types/open-webui";
@@ -47,7 +47,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <div className="prose max-w-none text-sm [&>*]:my-3 overflow-x-auto">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
+          rehypePlugins={[rehypeSanitize]}
           components={markdownComponents}
         >
           {message.content || "..."}

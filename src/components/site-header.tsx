@@ -41,7 +41,8 @@ export function SiteHeader() {
   // Only show PPT navigation items on PPT pages
   const shouldShowPPTNav = !isHomePage && isPPTPage;
 
-  if (pathname === ROUTES.LANDING) {
+  // Don't show header on landing page or if pathname is not yet available
+  if (!pathname || pathname === ROUTES.LANDING) {
     return null;
   }
 

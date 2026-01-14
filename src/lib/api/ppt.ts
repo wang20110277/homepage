@@ -182,23 +182,47 @@ export async function uploadFiles(files: File[]): Promise<FileUploadResponse[]> 
 }
 
 /**
- * Generate PPT (synchronous)
+ * Generate PPT (synchronous with extended timeout)
+ *
+ * Uses AbortController to set a 10-minute timeout (600000ms)
+ * to match the backend PRESENTON_TIMEOUT configuration
  */
 export async function generatePpt(
   params: GeneratePptRequest
 ): Promise<GeneratePptResponse> {
-  const response = await fetch("/api/ppt/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...params,
-      async: false,
-    }),
-  });
+  // Create AbortController for 10-minute timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
 
-  return handleResponse<GeneratePptResponse>(response);
+  try {
+    const response = await fetch("/api/ppt/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...params,
+        async: false,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    return handleResponse<GeneratePptResponse>(response);
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    // Handle abort error specifically
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new PPTApiError(
+        "TIMEOUT",
+        "PPT 生成超时（超过 10 分钟），请尝试减少页数或使用更简单的内容",
+        { timeout: "600000ms" }
+      );
+    }
+
+    throw error;
+  }
 }
 
 /**

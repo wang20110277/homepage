@@ -26,7 +26,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-svh bg-white text-gray-900">
+    <main className="min-h-svh bg-white text-gray-900 -mt-[72px]">
       <WavyBackground
         containerClassName="relative bg-white"
         backgroundFill="white"

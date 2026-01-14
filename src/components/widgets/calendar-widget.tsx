@@ -99,8 +99,8 @@ export function CalendarWidget() {
                 <div
                   key={index}
                   className={cn(
-                    "p-1 rounded aspect-square flex items-center justify-center",
-                    day && "hover:bg-white/5 cursor-pointer",
+                    "p-1 rounded aspect-square flex items-center justify-center transition-all duration-200",
+                    day && "cursor-pointer hover:bg-accent hover:text-accent-foreground hover:scale-110 hover:font-medium",
                     isToday && "bg-primary/20 text-primary font-bold",
                     !day && "opacity-0"
                   )}

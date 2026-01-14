@@ -90,7 +90,9 @@
       "Bash(pnpm db:generate:*)",
       "Bash(Remove-Item \"drizzle\\0002_crazy_hawkeye.sql\")",
       "Bash(pnpm db:migrate:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(node:*)",
+      "Bash(claude:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

@@ -55,6 +55,11 @@ export function UserProfile() {
   const [details, setDetails] = useState<ProfileDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!session?.user) {
@@ -101,8 +106,13 @@ export function UserProfile() {
   const assignedTools = details?.tools ?? [];
   const hasAdminRole = details?.roles?.includes("admin") ?? false;
 
-  if (isPending) {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
+  // 在服务器端和首次客户端渲染时，显示一致的加载状态
+  if (!isMounted || isPending) {
+    return (
+      <Button variant="ghost" className="relative h-8 w-8 rounded-full" disabled>
+        <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+      </Button>
+    );
   }
 
   if (!session?.user) {

@@ -3,7 +3,7 @@ import { withAuth, type BffContext } from "@/lib/core/bff-auth";
 import { ok, badRequest } from "@/lib/core/api-response";
 import { inspectionDb } from "@/lib/inspection-db";
 import { collectionAuditResults } from "@/lib/schema";
-import { eq, like, count } from "drizzle-orm";
+import { eq, like, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const QuerySchema = z.object({
@@ -58,20 +58,31 @@ async function handler(
         break;
     }
 
-    // Get total count
-    const [{ total }] = await inspectionDb
-      .select({ total: count() })
-      .from(collectionAuditResults)
-      .where(whereCondition);
-
-    // Get paginated results
-    const records = await inspectionDb
-      .select()
+    // 优化：使用单次查询同时获取总数和分页数据（使用窗口函数）
+    const recordsWithCount = await inspectionDb
+      .select({
+        id: collectionAuditResults.id,
+        collId: collectionAuditResults.collId,
+        dateFolder: collectionAuditResults.dateFolder,
+        score: collectionAuditResults.score,
+        deductions: collectionAuditResults.deductions,
+        txtFilename: collectionAuditResults.txtFilename,
+        processedAt: collectionAuditResults.processedAt,
+        // 使用窗口函数获取总数
+        totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
+      })
       .from(collectionAuditResults)
       .where(whereCondition)
       .limit(limit)
       .offset(offset)
       .orderBy(collectionAuditResults.id);
+
+    // 从第一条记录中提取总数
+    const total = recordsWithCount.length > 0 ? Number(recordsWithCount[0].totalCount) : 0;
+
+    // 移除 totalCount 字段，返回纯净的记录
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const records = recordsWithCount.map(({ totalCount: _totalCount, ...record }) => record);
 
     const totalPages = Math.ceil(total / limit);
 

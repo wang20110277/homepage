@@ -240,12 +240,31 @@ export const rolePermissionRelations = relations(rolePermissions, ({ one }) => (
 // ============================================================================
 // Collection Audit Results Table
 // ============================================================================
-export const collectionAuditResults = pgTable("collection_audit_results", {
-  id: serial("id").primaryKey(),
-  collId: varchar("coll_id", { length: 255 }),
-  dateFolder: varchar("date_folder", { length: 50 }),
-  score: integer("score"),
-  deductions: text("deductions"),
-  txtFilename: varchar("txt_filename", { length: 255 }),
-  processedAt: timestamp("processed_at").defaultNow(),
-});
+export const collectionAuditResults = pgTable(
+  "collection_audit_results",
+  {
+    id: serial("id").primaryKey(),
+    collId: varchar("coll_id", { length: 255 }),
+    dateFolder: varchar("date_folder", { length: 50 }),
+    score: integer("score"),
+    deductions: text("deductions"),
+    txtFilename: varchar("txt_filename", { length: 255 }),
+    processedAt: timestamp("processed_at").defaultNow(),
+  },
+  (table) => ({
+    // 为常用查询字段添加索引以提升查询性能
+    collIdIdx: index("collection_audit_results_coll_id_idx").on(table.collId),
+    dateFolderIdx: index("collection_audit_results_date_folder_idx").on(
+      table.dateFolder
+    ),
+    scoreIdx: index("collection_audit_results_score_idx").on(table.score),
+    processedAtIdx: index("collection_audit_results_processed_at_idx").on(
+      table.processedAt
+    ),
+    // 组合索引：按催收员ID和日期查询（常见场景）
+    collIdDateIdx: index("collection_audit_results_coll_id_date_idx").on(
+      table.collId,
+      table.dateFolder
+    ),
+  })
+);

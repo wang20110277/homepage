@@ -351,6 +351,9 @@ OpenWebUI can be slow/unreliable during inference. Per-path state, 3-failure thr
 ### Why Auto-Generate Title?
 Better UX. If title is default ("New conversation"), generate from first user message (max 50 chars). Only on first message.
 
+### Why Download Proxy (Mixed Content Solution)?
+When frontend runs on HTTPS but external services (Presenton, OCR) use HTTP, browsers block downloads due to mixed content policies. Solution: BFF layer auto-detects HTTP URLs and rewrites them to proxy through `/api/ppt/download?url=<encoded-url>`. Backend-to-backend HTTP calls work fine, and users get HTTPS download links that avoid browser security warnings.
+
 ## Critical Development Rules
 
 1. **ALWAYS run `pnpm lint && pnpm typecheck` after changes**

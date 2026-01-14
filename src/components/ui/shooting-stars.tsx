@@ -56,6 +56,7 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
 }) => {
   const [star, setStar] = useState<ShootingStar | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -88,39 +89,46 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
 
   useEffect(() => {
     const moveStar = () => {
-      if (star) {
-        setStar((prevStar) => {
-          if (!prevStar) return null;
-          const newX =
-            prevStar.x +
-            prevStar.speed * Math.cos((prevStar.angle * Math.PI) / 180);
-          const newY =
-            prevStar.y +
-            prevStar.speed * Math.sin((prevStar.angle * Math.PI) / 180);
-          const newDistance = prevStar.distance + prevStar.speed;
-          const newScale = 1 + newDistance / 100;
-          if (
-            newX < -20 ||
-            newX > window.innerWidth + 20 ||
-            newY < -20 ||
-            newY > window.innerHeight + 20
-          ) {
-            return null;
-          }
-          return {
-            ...prevStar,
-            x: newX,
-            y: newY,
-            distance: newDistance,
-            scale: newScale,
-          };
-        });
-      }
+      setStar((prevStar) => {
+        if (!prevStar) return null;
+        const newX =
+          prevStar.x +
+          prevStar.speed * Math.cos((prevStar.angle * Math.PI) / 180);
+        const newY =
+          prevStar.y +
+          prevStar.speed * Math.sin((prevStar.angle * Math.PI) / 180);
+        const newDistance = prevStar.distance + prevStar.speed;
+        const newScale = 1 + newDistance / 100;
+        if (
+          newX < -20 ||
+          newX > window.innerWidth + 20 ||
+          newY < -20 ||
+          newY > window.innerHeight + 20
+        ) {
+          return null;
+        }
+        return {
+          ...prevStar,
+          x: newX,
+          y: newY,
+          distance: newDistance,
+          scale: newScale,
+        };
+      });
+
+      // 继续动画循环
+      animationFrameRef.current = requestAnimationFrame(moveStar);
     };
 
-    const animationFrame = requestAnimationFrame(moveStar);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [star]);
+    // 启动动画循环
+    animationFrameRef.current = requestAnimationFrame(moveStar);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []); // 空依赖数组，只在组件挂载时运行一次
 
   return (
     <svg

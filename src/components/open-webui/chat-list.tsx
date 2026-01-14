@@ -280,10 +280,10 @@ export function ChatListPanel() {
                       trackEvent("chat_opened", { chatId: chat.id });
                     }}
                     className={cn(
-                      "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition",
+                      "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-all duration-200",
                       isActive
                         ? "bg-primary/10 text-foreground"
-                        : "hover:bg-white/5"
+                        : "hover:bg-accent hover:text-accent-foreground hover:shadow-sm"
                     )}
                   >
                     <div className="flex flex-1 min-w-0">
