@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-工作台系统 - A Next.js 15 enterprise workspace platform integrating Open WebUI chat, PPT generation, OCR recognition, and enterprise information lookup with multi-tenant RBAC and dual-provider authentication.
+工作台系统 - A Next.js 15 enterprise workspace platform integrating Open WebUI chat, PPT generation (Presenton), OCR recognition (Deepseek), quality check inspections, and multi-tenant RBAC with dual-provider authentication (ADFS/Entra ID).
 
 ## Tech Stack
 
@@ -39,11 +39,12 @@ pnpm db:migrate           # Apply migrations to database
 pnpm db:push              # Push schema to DB (dev only - skips migrations)
 pnpm db:studio            # Open Drizzle Studio GUI
 pnpm db:reset             # Drop all tables (destructive)
+pnpm test:ppt             # Test PPT generation service
 ```
 
 ## Architecture Overview
 
-### Dual Database Strategy
+### Triple Database Strategy
 
 **PostgreSQL (Primary Application Database)**
 - Multi-tenant architecture with RBAC
@@ -57,6 +58,13 @@ pnpm db:reset             # Drop all tables (destructive)
 - One-way sync: SQLite → PostgreSQL on first login
 - Lazy-loaded singleton pattern
 - Location: `src/lib/webui-db.ts`, file: `webui.db`
+
+**PostgreSQL (Inspection Database - Quality Check)**
+- Separate database for quality check/inspection module
+- Contains `collectionAuditResults` table with audit data
+- Accessed via `inspectionDb` instance
+- Location: `src/lib/inspection-db.ts`
+- Environment: `INSPECTION_POSTGRES_URL`
 
 ### Multi-Layered Authentication System
 
@@ -76,6 +84,66 @@ pnpm db:reset             # Drop all tables (destructive)
 - Resource:action permission model
 - Tenant feature flags
 - Authorization snapshots (cached per request)
+
+### Presenton PPT Generation Service
+
+**Service Layer** (`src/lib/services/presenton.ts`)
+- Sync generation: `generatePpt()` - Direct PPT generation with download URL
+- Async generation: `generatePptAsync()` - Returns taskId for polling
+- Status checking: `checkGenerationStatus()` - Poll async task progress
+- Templates: `getTemplates()`, `getTemplateById()`
+- File upload: `uploadFile()` - Upload assets for presentation
+- Export: `exportPresentation()` - Export as PPTX or PDF
+- Custom error: `PresentonServiceError`
+
+**BFF Routes** (`src/app/api/ppt/`)
+- `/generate` - PPT generation (sync/async via `async` boolean)
+- `/status/[taskId]` - Check async generation status
+- `/templates` - List available templates
+- `/files/upload` - Upload file assets
+- `/presentations` - List user presentations
+- `/presentations/[id]` - Get presentation details
+- `/presentations/[id]/export` - Export presentation
+- `/download` - Proxy HTTP downloads to avoid mixed content
+
+**Key Configuration:**
+- Language hardcoded: "Chinese (Simplified - 中文, 汉语)"
+- Export format hardcoded: "pptx"
+- Template hardcoded: "general"
+- Timeout: 10 minutes (600s) for image generation
+
+### Deepseek OCR Service
+
+**Service Layer** (`src/lib/services/deepseek-ocr.ts`)
+- Recognition: `recognizeImage()` - OCR via chat completions
+- Health check: `checkDeepseekOcrHealth()`
+- Custom error: `DeepseekOcrServiceError`
+
+**Request Format:**
+```typescript
+{
+  model: "Deepseek-OCR",
+  messages: [{
+    role: "user",
+    content: [
+      { type: "image_url", image_url: { url: "data:image/png;base64,..." } },
+      { type: "text", text: "Convert the document to markdown" }
+    ]
+  }],
+  temperature: 0.0,
+  extra_body: {
+    skip_special_tokens: false,
+    vllm_xargs: {
+      ngram_size: 30,
+      window_size: 90,
+      whitelist_token_ids: [128821, 128822]
+    }
+  }
+}
+```
+
+**BFF Route** (`src/app/api/ocr/`)
+- `/recognize` - POST with `{ image: base64, prompt?: string }`
 
 ### Open WebUI Integration (5-Tier Architecture)
 
@@ -186,6 +254,20 @@ OPEN_WEBUI_SERVICE_TOKEN=optional-shared-token
 OPEN_WEBUI_API_KEY=optional-api-key
 OPEN_WEBUI_TIMEOUT=30000
 OPEN_WEBUI_COMPLETION_TIMEOUT=120000
+
+# Presenton PPT Generation
+PRESENTON_BASE_URL=http://localhost:5000
+PRESENTON_TIMEOUT=600000
+PRESENTON_API_KEY=optional-api-key
+
+# Deepseek OCR Service
+DEEPSEEK_OCR_BASE_URL=http://10.162.1.158:8088/v1
+DEEPSEEK_OCR_API_KEY=test
+DEEPSEEK_OCR_MODEL=Deepseek-OCR
+DEEPSEEK_OCR_TIMEOUT=120000
+
+# Inspection Database (Quality Check)
+INSPECTION_POSTGRES_URL=postgresql://user:pass@localhost:5432/inspection
 ```
 
 ## Project Structure
@@ -198,11 +280,27 @@ src/
 │   │   ├── open-webui/                 # Open WebUI BFF routes
 │   │   │   ├── chats/                  # Chat CRUD operations
 │   │   │   └── models/                 # Model listing
+│   │   ├── ppt/                        # Presenton PPT service
+│   │   │   ├── generate/               # PPT generation
+│   │   │   ├── status/[taskId]/        # Async status check
+│   │   │   ├── templates/              # Template listing
+│   │   │   ├── files/upload/           # File upload
+│   │   │   ├── presentations/          # Presentation CRUD
+│   │   │   └── download/               # HTTP→HTTPS proxy
+│   │   ├── ocr/recognize/              # Deepseek OCR
+│   │   ├── quality-check/              # Inspection queries
+│   │   ├── users/                      # User management
+│   │   ├── tenants/                    # Tenant management
 │   │   ├── chat/route.ts               # Legacy OpenRouter chat
 │   │   └── diagnostics/                # System diagnostics
 │   ├── home/page.tsx                   # Open WebUI chat workspace
 │   ├── dashboard/page.tsx              # Personal workspace
-│   ├── tools/                          # Tool pages (PPT, OCR, etc.)
+│   ├── tools/                          # Tool pages
+│   │   ├── ppt-generator/              # PPT generation tool
+│   │   ├── ocr/                        # OCR recognition tool
+│   │   ├── quality-check/              # Quality check tool
+│   │   ├── my-presentations/           # User presentations
+│   │   └── tianyancha/                 # Enterprise lookup (placeholder)
 │   └── page.tsx                        # Landing page
 ├── components/
 │   ├── open-webui/                     # Open WebUI chat components
@@ -217,13 +315,16 @@ src/
 │   ├── auth.ts                         # Better Auth server config
 │   ├── auth-client.ts                  # Better Auth client hooks
 │   ├── auth-utils.ts                   # Claims mapping utilities
-│   ├── db.ts                           # PostgreSQL connection
-│   ├── webui-db.ts                     # SQLite connection
+│   ├── db.ts                           # Primary PostgreSQL connection
+│   ├── webui-db.ts                     # SQLite connection (Open WebUI)
+│   ├── inspection-db.ts                # Inspection PostgreSQL connection
 │   ├── schema.ts                       # Drizzle schema
 │   ├── rbac.ts                         # RBAC authorization
 │   ├── openWebuiClient.ts              # HTTP client with circuit breaker
 │   ├── services/
 │   │   ├── open-webui.ts               # Open WebUI service layer
+│   │   ├── presenton.ts                # Presenton PPT service
+│   │   ├── deepseek-ocr.ts             # Deepseek OCR service
 │   │   ├── user-tokens.ts              # Token resolution
 │   │   └── sync-webui-user.ts          # WebUI user sync
 │   └── core/                           # Core infrastructure
@@ -328,10 +429,33 @@ export async function doSomething(userId: string, data: unknown) {
 4. Create handler function, wrap with `withAuth`
 5. Export HTTP methods: `export const GET = withAuth(handler);`
 
+### Quality Check Pattern (Multi-Database)
+
+```typescript
+// src/app/api/quality-check/route.ts
+import { withAuth } from "@/lib/core/bff-auth";
+import { inspectionDb } from "@/lib/inspection-db";
+import { collectionAuditResults } from "@/lib/schema";
+import { eq, like, sql } from "drizzle-orm";
+
+async function handler(req: Request, { traceId }: BffContext) {
+  // Use inspectionDb for quality check data
+  const records = await inspectionDb
+    .select()
+    .from(collectionAuditResults)
+    .where(like(collectionAuditResults.collId, `%${queryValue}%`))
+    .limit(10);
+
+  return ok({ records }, traceId);
+}
+
+export const GET = withAuth(handler);
+```
+
 ## Non-Obvious Architectural Decisions
 
-### Why Dual Databases?
-OpenWebUI is self-contained with SQLite for chat state. The app needs PostgreSQL for auth and RBAC. Solution: Read-only sync from SQLite → PostgreSQL on login. App owns auth, OpenWebUI owns chat.
+### Why Triple Databases?
+OpenWebUI is self-contained with SQLite for chat state. The app needs PostgreSQL for auth and RBAC. Quality check module uses a separate PostgreSQL instance for isolation. Solutions: Read-only sync from SQLite → PostgreSQL on login, separate connection pool for inspection data. App owns auth, OpenWebUI owns chat, Quality check owns inspection.
 
 ### Why 3-Level Token Fallback?
 Different deployment scenarios: shared service (single token for all users), per-user (API keys from WebUI), OAuth-only (use access token). Maximum flexibility.
@@ -354,6 +478,9 @@ Better UX. If title is default ("New conversation"), generate from first user me
 ### Why Download Proxy (Mixed Content Solution)?
 When frontend runs on HTTPS but external services (Presenton, OCR) use HTTP, browsers block downloads due to mixed content policies. Solution: BFF layer auto-detects HTTP URLs and rewrites them to proxy through `/api/ppt/download?url=<encoded-url>`. Backend-to-backend HTTP calls work fine, and users get HTTPS download links that avoid browser security warnings.
 
+### Why Deepseek OCR Ngram Configuration?
+Deepseek OCR uses specific vLLM parameters for optimal text recognition: `ngram_size: 30`, `window_size: 90`, `whitelist_token_ids: [128821, 128822]`. These enable the model to better recognize Chinese text patterns and reduce recognition errors. Hardcoded in service layer to ensure consistent results.
+
 ## Critical Development Rules
 
 1. **ALWAYS run `pnpm lint && pnpm typecheck` after changes**
@@ -368,6 +495,15 @@ When frontend runs on HTTPS but external services (Presenton, OCR) use HTTP, bro
 10. **Support dark mode** - Use Tailwind dark: prefix, shadcn/ui tokens
 
 ## Common Development Tasks
+
+### Add New BFF Service (External API)
+1. Create service in `src/lib/services/[service].ts`
+2. Define interfaces for request/response
+3. Create custom error class extending Error
+4. Add HTTP client using `createHttpClient()`
+5. Implement service methods with error handling
+6. Create BFF route in `src/app/api/[service]/route.ts`
+7. Add environment variables to `env.example`
 
 ### Add RBAC Permission
 1. Add to `permissions` table in schema
@@ -398,6 +534,19 @@ When frontend runs on HTTPS but external services (Presenton, OCR) use HTTP, bro
 3. Check user has API key: `SELECT api_key FROM user WHERE email = ?`
 4. Manual sync: Call `trySyncOpenWebuiApiKey(userId, email)`
 
+### Test Presenton PPT Generation
+1. Run test script: `pnpm test:ppt`
+2. Check Presenton service health: `/health` endpoint
+3. Verify environment variables: `PRESENTON_BASE_URL`, `PRESENTON_API_KEY`
+4. Test sync generation with small content (1-2 slides)
+5. For long-running generations, use async mode: `{ async: true }`
+
+### Test Deepseek OCR
+1. Verify service health: Check `DEEPSEEK_OCR_BASE_URL` accessible
+2. Prepare base64-encoded image (remove `data:image/` prefix)
+3. Test with default prompt or custom prompt
+4. Check inference time - should complete within 2 minutes
+
 ## Styling Guidelines
 
 - Use Tailwind CSS utility classes
@@ -423,6 +572,10 @@ When frontend runs on HTTPS but external services (Presenton, OCR) use HTTP, bro
 - [ ] Test authentication flow (login, logout)
 - [ ] Verify RBAC permissions (try unauthorized access)
 - [ ] Test Open WebUI integration (chat, list models)
+- [ ] Test PPT generation (sync and async modes)
+- [ ] Test OCR recognition (various image types)
+- [ ] Test quality check queries (search by different fields)
+- [ ] Verify download proxy works (HTTP→HTTPS)
 - [ ] Check database migrations (review SQL)
 - [ ] Verify dark mode support (toggle theme)
 - [ ] Test error handling (invalid input, network errors)

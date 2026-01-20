@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Hook(*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(npm run lint)",
@@ -18,14 +19,14 @@
       "mcp__shadcn__search_items_in_registries",
       "Bash(pnpm run lint)",
       "Bash(curl:*)",
-      "Bash(Remove-Item -Recurse -Force D:Claudehomepage.next)",
+      "Bash(Remove-Item -Recurse -Force D:\\Claude\\homepage\\.next)",
       "Bash(git restore:*)",
       "Bash(mkdir:*)",
       "WebFetch(domain:docs.presenton.ai)",
       "Bash(pnpm list:*)",
       "WebSearch",
       "WebFetch(domain:gpt.luckybruce.com)",
-      "Bash(Remove-Item -Recurse -Force .next 2)",
+      "Bash(Remove-Item -Recurse -Force .next)",
       "Bash($null)",
       "Bash(test:*)",
       "Bash(pnpm --version:*)",
@@ -76,10 +77,10 @@
       "Bash(pnpm lint:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(if not exist \"functionList\" mkdir functionList)",
-      "Bash(powershell -Command \"if (-not (Test-Path ''functionList'')) { New-Item -ItemType Directory -Path ''functionList'' }\")",
+      "Bash(powershell -Command \"if (-not (Test-Path 'functionList')) { New-Item -ItemType Directory -Path 'functionList' }\")",
       "Bash(wc:*)",
       "Bash(if not exist \"scripts\" mkdir scripts)",
-      "Bash(powershell -Command \"if (-not (Test-Path ''scripts'')) { New-Item -ItemType Directory -Path ''scripts'' }\")",
+      "Bash(powershell -Command \"if (-not (Test-Path 'scripts')) { New-Item -ItemType Directory -Path 'scripts' }\")",
       "Bash(pnpm remove:*)",
       "Bash(New-Item -ItemType Directory -Path \"C:\\Users\\wj_ds\\.claude\\statusline\" -Force)",
       "Bash(Copy-Item -Path \"C:\\Users\\wj_ds\\Desktop\\homepage\\statusline\\statusline.ps1\" -Destination \"C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1\")",
@@ -92,7 +93,12 @@
       "Bash(pnpm db:migrate:*)",
       "Bash(npx tsx:*)",
       "Bash(node:*)",
-      "Bash(claude:*)"
+      "Bash(claude:*)",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(Test-Path \"C:\\\\Users\\\\wj_ds\\\\.claude\\\\hooks\\\\play-sound.ps1\")",
+      "Bash(cd:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
@@ -101,9 +107,5 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ],
-  "statusLine": {
-    "type": "command",
-    "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$input | powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\\Users\\wj_ds\\.claude\\statusline\\statusline.ps1'\""
-  }
+  ]
 }
