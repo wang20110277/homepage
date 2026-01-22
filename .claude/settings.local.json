@@ -98,7 +98,15 @@
       "Bash(powershell -Command:*)",
       "Bash(powershell.exe:*)",
       "Bash(Test-Path \"C:\\\\Users\\\\wj_ds\\\\.claude\\\\hooks\\\\play-sound.ps1\")",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(tasklist:*)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(litellm:*)",
+      "Bash(ping:*)",
+      "Bash(ollama serve:*)",
+      "mcp__ide__executeCode",
+      "Bash(ollama pull:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
