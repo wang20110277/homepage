@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { CometCard } from "@/components/ui/comet-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Search, Grid3x3, X, Presentation, ScanText, Building2, ClipboardCheck } from "lucide-react";
+import { Search, Grid3x3, X, Presentation, ScanText, Building2, ClipboardCheck, GitCompare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -72,6 +72,14 @@ const toolConfig: Record<
     gradientTo: "to-tool-orange/5",
     borderGlow: "group-hover:shadow-tool-orange/50",
   },
+  fileCompare: {
+    icon: GitCompare,
+    color: "text-tool-pink",
+    bgColor: "bg-tool-pink/10",
+    gradientFrom: "from-tool-pink/20",
+    gradientTo: "to-tool-pink/5",
+    borderGlow: "group-hover:shadow-tool-pink/50",
+  },
 };
 
 // 应用分类
@@ -106,6 +114,7 @@ const toolCategoryMap: Record<ToolId, ToolCategoryId> = {
   ocr: "contentCreation",
   tianyancha: "dataQuery",
   qualityCheck: "review",
+  fileCompare: "contentCreation",
 };
 
 export interface ToolStatus {

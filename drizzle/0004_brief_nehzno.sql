@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ALTER COLUMN "features" SET DEFAULT '{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true,"fileCompare":true}'::jsonb;

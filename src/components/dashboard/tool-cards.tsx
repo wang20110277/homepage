@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck } from "lucide-react";
+import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck, GitCompare } from "lucide-react";
 
 const tools = [
   {
@@ -53,6 +53,18 @@ const tools = [
     gradientFrom: "from-tool-orange/20",
     gradientTo: "to-tool-orange/5",
     borderGlow: "group-hover:shadow-tool-orange/50",
+  },
+  {
+    id: "file-compare",
+    title: "文档对比工具",
+    description: "上传 Word 和 PDF 文档，智能对比内容差异并生成报告",
+    icon: GitCompare,
+    href: "/tools/file-compare",
+    color: "text-tool-pink",
+    bgColor: "bg-tool-pink/10",
+    gradientFrom: "from-tool-pink/20",
+    gradientTo: "to-tool-pink/5",
+    borderGlow: "group-hover:shadow-tool-pink/50",
   },
 ];
 

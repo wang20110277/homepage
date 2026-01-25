@@ -8,6 +8,7 @@ export const ROUTES = {
   LANDING: "/",
   PPT_GENERATOR: "/tools/ppt-generator",
   MY_PRESENTATIONS: "/tools/my-presentations",
+  FILE_COMPARE: "/tools/file-compare",
 } as const;
 
 /**

@@ -116,14 +116,23 @@ export function FileUpload({
         }}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3 transition",
-          isDragging ? "border-primary bg-primary/5" : "border-muted"
+          "border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3 transition-all cursor-pointer",
+          "hover:border-primary/50 hover:bg-accent/50",
+          isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-muted"
         )}
+        onClick={() => inputRef.current?.click()}
       >
         <UploadCloud className="w-10 h-10 text-primary" />
         <div>
           <p className="font-semibold">拖拽文件到这里，或</p>
-          <Button variant="link" className="p-0" onClick={() => inputRef.current?.click()}>
+          <Button
+            variant="link"
+            className="p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              inputRef.current?.click();
+            }}
+          >
             点击选择文件
           </Button>
         </div>

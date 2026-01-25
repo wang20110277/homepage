@@ -106,14 +106,26 @@
       "Bash(ping:*)",
       "Bash(ollama serve:*)",
       "mcp__ide__executeCode",
-      "Bash(ollama pull:*)"
+      "Bash(ollama pull:*)",
+      "Bash(Remove-Item .claude/hooks.json -Force)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -Command:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "shadcn"
-  ]
+  "enabledMcpjsonServers": ["shadcn"],
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/play-sound.ps1"
+          }
+        ]
+      }
+    ]
+  }
 }

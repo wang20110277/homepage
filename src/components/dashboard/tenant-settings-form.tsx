@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck";
+type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare";
 
 const TOOL_DEFINITIONS: Array<{
   id: ToolFeature;
@@ -35,6 +35,11 @@ const TOOL_DEFINITIONS: Array<{
     name: "Quality Check Query",
     description: "Enable quality audit result query and retrieval.",
   },
+  {
+    id: "fileCompare",
+    name: "Document Comparison",
+    description: "Allow Word and PDF document comparison with diff reports.",
+  },
 ];
 
 function normalizeFeatures(
@@ -45,6 +50,7 @@ function normalizeFeatures(
     ocr: Boolean(input?.ocr ?? true),
     tianyancha: Boolean(input?.tianyancha ?? true),
     qualityCheck: Boolean(input?.qualityCheck ?? true),
+    fileCompare: Boolean(input?.fileCompare ?? true),
   };
 }
 
