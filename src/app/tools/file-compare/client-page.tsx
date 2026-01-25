@@ -5,7 +5,6 @@ import { FileText, Files, ArrowRight, Loader2, Download, CheckCircle2, AlertCirc
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/tools/file-upload";
-import { CompareLog } from "@/components/tools/file-compare/compare-log";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -15,7 +14,6 @@ import {
   compareDocuments,
   SCRIPT_DESCRIPTIONS,
   type CompareScript,
-  type ProcessLog,
   FileCompareApiError,
 } from "@/lib/api/file-compare";
 
@@ -31,8 +29,7 @@ export default function FileCompareClient() {
 
   // Processing state
   const [status, setStatus] = useState<ProcessingStatus>("idle");
-  const [logs, setLogs] = useState<ProcessLog[]>([]);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isProcessing = status === "processing";
@@ -48,8 +45,7 @@ export default function FileCompareClient() {
     }
 
     setStatus("processing");
-    setLogs([]);
-    setDownloadUrl(null);
+    setFilename(null);
     setError(null);
 
     try {
@@ -59,11 +55,25 @@ export default function FileCompareClient() {
         script: selectedScript,
       });
 
-      setLogs(result.logs);
-
       if (result.success && result.downloadUrl) {
         setStatus("completed");
-        setDownloadUrl(result.downloadUrl);
+        const downloadFilename = result.filename || "对比结果.xlsx";
+        setFilename(downloadFilename);
+
+        // 立即触发浏览器下载
+        const link = document.createElement("a");
+        link.href = result.downloadUrl;
+        link.download = downloadFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 释放 Blob URL 内存（延迟释放以确保下载完成）
+        setTimeout(() => {
+          if (result.downloadUrl) {
+            URL.revokeObjectURL(result.downloadUrl);
+          }
+        }, 1000);
       } else {
         setStatus("error");
         setError(result.error || "对比失败");
@@ -79,12 +89,6 @@ export default function FileCompareClient() {
       }
     }
   }, [wordFile, pdfFiles, selectedScript]);
-
-  const handleDownload = () => {
-    if (downloadUrl) {
-      window.location.href = downloadUrl;
-    }
-  };
 
   return (
     <main className="container mx-auto max-w-4xl space-y-12 pb-16 pt-20">
@@ -205,28 +209,20 @@ export default function FileCompareClient() {
         </div>
       )}
 
-      {/* Process Logs */}
-      {logs.length > 0 && <CompareLog logs={logs} />}
-
-      {/* Result Section */}
-      {status === "completed" && downloadUrl && (
-        <div className="space-y-4 rounded-lg border border-green-500 bg-green-50 p-6 dark:bg-green-950">
+      {/* Success Message */}
+      {status === "completed" && (
+        <div className="rounded-lg border border-green-500 bg-green-50 p-6 dark:bg-green-950">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
-            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-              对比完成
-            </h3>
+            <div>
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
+                对比完成！
+              </h3>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                文件 "{filename}" 已下载到您的浏览器下载文件夹
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-green-700 dark:text-green-300">
-            文档对比已完成，请点击下方按钮下载 Excel 对比报告。
-          </p>
-          <Button
-            onClick={handleDownload}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            下载对比报告
-          </Button>
         </div>
       )}
     </main>

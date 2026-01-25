@@ -116,15 +116,16 @@ function parseProcessLogs(rawLogs: string[]): ProcessLog[] {
  * Compare documents using the Flask backend service
  *
  * @param params - Compare request parameters
- * @returns Promise with structured result including logs and download info
+ * @returns Promise with download URL or error info
  * @throws FileCompareApiError on API errors
  */
 export async function compareDocuments(
   params: CompareRequest
 ): Promise<{
   success: boolean;
-  logs: ProcessLog[];
   downloadUrl?: string;
+  filename?: string;
+  logs?: ProcessLog[];
   error?: string;
 }> {
   if (!SERVICE_URL) {
@@ -172,18 +173,36 @@ export async function compareDocuments(
       body: formData,
     });
 
+    // 检查响应类型
+    const contentType = response.headers.get("Content-Type") || "";
+
+    // 如果返回的是文件流 (Excel)
+    if (contentType.includes("application/vnd.openxmlformats") || contentType.includes("application/octet-stream")) {
+      // 直接返回文件流
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const filename = getFilenameFromResponse(response) || `对比结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+      return {
+        success: true,
+        downloadUrl,
+        filename,
+      };
+    }
+
+    // 如果返回的是 JSON (错误信息)
     const result: CompareResponse = await response.json();
 
-    if (result.status === "success" && result.download_url) {
+    if (result.status === "success") {
       return {
         success: true,
         logs: parseProcessLogs(result.process_log || []),
-        downloadUrl: `${SERVICE_URL}${result.download_url}`,
+        downloadUrl: result.download_url ? `${SERVICE_URL}${result.download_url}` : undefined,
       };
     } else {
       return {
         success: false,
-        logs: parseProcessLogs(result.process_log || []),
+        logs: result.process_log ? parseProcessLogs(result.process_log) : [],
         error: result.message || "Comparison failed",
       };
     }
@@ -193,6 +212,25 @@ export async function compareDocuments(
     }
     throw new FileCompareApiError("Unknown error occurred");
   }
+}
+
+/**
+ * 从响应头中获取文件名
+ */
+function getFilenameFromResponse(response: Response): string | null {
+  const contentDisposition = response.headers.get("Content-Disposition");
+  if (!contentDisposition) {
+    return null;
+  }
+
+  // 解析 Content-Disposition 头获取文件名
+  // 格式: attachment; filename="文件名.xlsx"
+  const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+  if (matches && matches[1]) {
+    // 移除引号
+    return matches[1].replace(/['"]/g, "");
+  }
+  return null;
 }
 
 /**
