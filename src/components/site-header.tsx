@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import { ROUTES, isPPTRoute } from "@/config/routes";
+import { GlobalAppsButton } from "@/components/open-webui/global-apps-button";
 
 const navigation = [
   {
@@ -50,9 +51,9 @@ export function SiteHeader() {
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-gradient-to-r from-background via-primary/[0.02] to-background backdrop-blur-xl">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo and Welcome */}
-        <div className="flex items-center gap-8">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Left Section - Logo and Welcome/Navigation */}
+        <div className="flex items-center gap-8 flex-1">
           <Link
             href={ROUTES.HOME}
             className="group flex items-center gap-3 transition-all duration-300"
@@ -120,8 +121,13 @@ export function SiteHeader() {
           )}
         </div>
 
+        {/* Center Section - 全部应用按钮 */}
+        <div className="flex items-center justify-center">
+          <GlobalAppsButton />
+        </div>
+
         {/* Right Section */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1 justify-end">
           <ModeToggle />
           <UserProfile />
 
