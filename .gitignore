@@ -47,12 +47,25 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
 # log files
 *.log
 
-# claude hooks
+# claude local config
+.claude/agents/
+.claude/commands/
+.claude/sounds/
 .claude/hooks/*.log
 .claude/settings.local.json
+
+# mcp config
+.mcp.json
+
+# temp notes
+functionList/
+
+# app runtime data
+app_data/
 
 # python cache
 __pycache__/
