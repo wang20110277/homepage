@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useRef, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,16 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, Search, Sparkles, FileText } from "lucide-react";
+import { Loader2, Search, Sparkles, Download } from "lucide-react";
 import { toast } from "sonner";
-import { mockCompanyData } from "@/lib/mock-data";
-import type { CompanyInfo, DueDiligenceReport } from "@/types";
+import type { CompanyInfo } from "@/types";
 import { CompanyInfoCard } from "@/components/tools/company-info-card";
-import { CompanyBusinessInfo } from "@/components/tools/company-business-info";
-import { CompanyShareholders } from "@/components/tools/company-shareholders";
-import { CompanyChanges } from "@/components/tools/company-changes";
-import { CompanyBusinessScope } from "@/components/tools/company-business-scope";
 
 const queryOptions = [
   { id: "basicInfo", label: "企业基本信息" },
@@ -31,26 +24,30 @@ const queryOptions = [
 
 type QueryOptionId = (typeof queryOptions)[number]["id"];
 type QuerySelection = Record<QueryOptionId, boolean>;
-type ReportVariant = "tech" | "channel";
 
-const reportVariantLabels: Record<ReportVariant, string> = {
-  tech: "信息科技管理尽调报告",
-  channel: "渠道准入尽调报告",
-};
+const CHANNEL_REPORT_LABEL = "渠道准入尽调报告";
 
-const reportSectionLabels: Record<keyof DueDiligenceReport["sections"], string> = {
-  basicInfo: "企业基本信息",
-  financialInfo: "财务信息",
-  shareholding: "股权结构",
-  litigation: "诉讼信息",
-  personnel: "人员相关",
-};
+// 报告缓存类型
+interface ReportCache {
+  blob: Blob;
+  filename: string;
+  generatedAt: Date;
+  companyName: string;
+}
 
-const companyStatusLabels: Record<CompanyInfo["status"], string> = {
-  active: "存续",
-  cancelled: "已注销",
-  revoked: "已吊销",
-};
+// 空数据占位组件
+function NoDataPlaceholder({ title }: { title: string }) {
+  return (
+    <Card>
+      <CardContent className="flex h-32 items-center justify-center text-muted-foreground">
+        <div className="text-center">
+          <p className="text-base font-medium">无</p>
+          <p className="text-xs mt-1">{title}暂无数据</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function TianyanchaToolPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,46 +60,153 @@ export default function TianyanchaToolPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<CompanyInfo | null>(null);
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [report, setReport] = useState<DueDiligenceReport | null>(null);
-  const [currentReportType, setCurrentReportType] = useState<string | null>(null);
+  // 报告缓存 - 使用 useRef 存储在内存中，页面刷新/关闭后自动清除
+  const reportCacheRef = useRef<ReportCache | null>(null);
 
-  const suggestions = useMemo(() => Object.keys(mockCompanyData), []);
-
-  const lookupCompany = (term: string) => {
-    const normalized = term.trim().toLowerCase();
-    if (!normalized) return null;
-
-    const entries = Object.entries(mockCompanyData);
-    const match = entries.find(([alias, info]) => {
-      const aliasMatch = alias.toLowerCase().includes(normalized) || normalized.includes(alias.toLowerCase());
-      const nameMatch = info.name.toLowerCase().includes(normalized);
-      const codeMatch = info.creditCode.toLowerCase().includes(normalized);
-      return aliasMatch || nameMatch || codeMatch;
-    });
-    return match ? match[1] : null;
+  // 从缓存下载报告
+  const downloadFromCache = (cache: ReportCache) => {
+    const url = window.URL.createObjectURL(cache.blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = cache.filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
-  const runSearch = (term: string) => {
+  // 调用搜索 API 验证企业是否存在
+  const searchCompanyApi = async (companyName: string) => {
+    const response = await fetch("/api/tianyancha/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        company_name: companyName,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      let errorMsg = errorData.error?.message || `请求失败 (${response.status})`;
+
+      if (response.status === 404 || errorData.error?.code === "COMPANY_NOT_FOUND") {
+        errorMsg = `未找到企业「${companyName}」的相关信息，请检查企业名称是否正确`;
+      }
+
+      throw new Error(errorMsg);
+    }
+
+    const data = await response.json();
+    return data.data;
+  };
+
+  // 调用生成报告 API
+  const generateReportApi = async (companyName: string): Promise<ReportCache> => {
+    const response = await fetch("/api/tianyancha/generate-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        company_name: companyName,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      let errorMsg = errorData.error?.detail || errorData.error?.message || `请求失败 (${response.status})`;
+
+      if (errorMsg.includes('未找到') || errorMsg.includes('不存在') || errorMsg.includes('API返回错误')) {
+        errorMsg = `未找到企业「${companyName}」的相关信息，请检查企业名称是否正确`;
+      }
+
+      throw new Error(errorMsg);
+    }
+
+    const blob = await response.blob();
+    const cache: ReportCache = {
+      blob,
+      filename: `${companyName}_企业报告.docx`,
+      generatedAt: new Date(),
+      companyName,
+    };
+
+    return cache;
+  };
+
+  const runSearch = async (term: string) => {
     setIsLoading(true);
     setError(null);
     setCompany(null);
-    setReport(null);
     setReportDialogOpen(false);
-    setCurrentReportType(null);
+    reportCacheRef.current = null;
 
-    setTimeout(() => {
-      const result = lookupCompany(term);
+    const companyName = term.trim();
+
+    if (!companyName) {
       setIsLoading(false);
-      if (!result) {
-        setError("未找到匹配的企业，请尝试其他关键词");
-        toast.warning("没有匹配的企业");
-        return;
+      setError("请输入企业名称");
+      toast.warning("请输入企业名称");
+      return;
+    }
+
+    const toastId = toast.loading("正在查询企业...");
+
+    try {
+      // 1. 先调用搜索 API 验证企业是否存在
+      const companyData = await searchCompanyApi(companyName);
+
+      // 2. 企业存在，创建公司信息对象
+      const companyInfo: CompanyInfo = {
+        id: `company-${Date.now()}`,
+        name: companyName,
+        legalRepresentative: companyData.legalRepresentative || "-",
+        registeredCapital: companyData.registeredCapital || "-",
+        establishDate: companyData.establishDate || "-",
+        status: companyData.status === "存续" ? "active" : "cancelled",
+        creditCode: companyData.creditCode || "-",
+        registeredAddress: "-",
+        businessInfo: {
+          companyType: "-",
+          operatingPeriod: "-",
+          registrationAuthority: "-",
+          approvalDate: "-",
+          organizationCode: "-",
+        },
+        shareholders: [],
+        changeRecords: [],
+        businessScope: "-",
+      };
+
+      setCompany(companyInfo);
+      toast.dismiss(toastId);
+      toast.success(`已找到企业：${companyName}`);
+
+      // 3. 后台生成报告并缓存
+      toast.loading("正在生成报告...", { id: "generating-report" });
+      try {
+        const cache = await generateReportApi(companyName);
+        reportCacheRef.current = cache;
+        toast.dismiss("generating-report");
+        toast.success("报告已生成，可随时下载");
+      } catch (reportError) {
+        toast.dismiss("generating-report");
+        // 报告生成失败，但企业确实存在
+        const reportErrorMsg = reportError instanceof Error ? reportError.message : "报告生成失败";
+        toast.warning(`报告生成失败: ${reportErrorMsg}`);
       }
-      setCompany(result);
-      toast.success("查询成功，已匹配企业信息");
-    }, 1200);
+
+      setIsLoading(false);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "查询企业失败";
+      setError(errorMsg);
+      toast.dismiss(toastId);
+      toast.error(errorMsg);
+      setIsLoading(false);
+    }
   };
 
   const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
@@ -116,18 +220,6 @@ export default function TianyanchaToolPage() {
     runSearch(searchQuery.trim());
   };
 
-  const handleSuggestionClick = (value: string) => {
-    setSearchQuery(value);
-    runSearch(value.trim());
-  };
-
-  const handleSuggestionKeyDown = (event: KeyboardEvent<HTMLSpanElement>, value: string) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleSuggestionClick(value);
-    }
-  };
-
   const handleOptionChange = (id: QueryOptionId, isChecked: boolean) => {
     setSelectedOptions((prev) => ({
       ...prev,
@@ -135,60 +227,39 @@ export default function TianyanchaToolPage() {
     }));
   };
 
-  const buildReport = (currentCompany: CompanyInfo, selections: QuerySelection): DueDiligenceReport => {
-    const riskLevel = currentCompany.status === "active" ? "low" : "medium";
-    const statusLabel = companyStatusLabels[currentCompany.status];
-
-    return {
-      id: `report-${currentCompany.id}`,
-      companyId: currentCompany.id,
-      companyName: currentCompany.name,
-      generatedAt: new Date().toISOString(),
-      summary: `${currentCompany.name} 当前状态为${statusLabel}，共 ${currentCompany.changeRecords.length} 条历史变更，可结合所选模块快速完成尽调。`,
-      riskLevel,
-      sections: {
-        basicInfo: selections.basicInfo,
-        financialInfo: selections.financialInfo,
-        shareholding: selections.shareholding,
-        litigation: selections.litigation,
-        personnel: selections.personnel,
-      },
-    };
-  };
-
-  const handleGenerateReport = (variant: ReportVariant) => {
+  // 点击"下载渠道准入尽调报告"按钮 - 只打开对话框，不下载
+  const handleOpenReportDialog = () => {
     if (!company) {
       toast.error("请先完成企业查询");
       return;
     }
 
-    const targetCompany = company;
-    const label = reportVariantLabels[variant];
-    const selectionsSnapshot = { ...selectedOptions };
+    if (!reportCacheRef.current) {
+      toast.error("报告尚未生成，请重新查询企业");
+      return;
+    }
 
-    setIsGeneratingReport(true);
-    setCurrentReportType(label);
-    const toastId = toast.loading(`正在生成${label}...`);
-
-    setTimeout(() => {
-      const nextReport = buildReport(targetCompany, selectionsSnapshot);
-      setReport(nextReport);
-      setIsGeneratingReport(false);
-      setReportDialogOpen(true);
-      toast.dismiss(toastId);
-      toast.success(`${label}生成成功`);
-    }, 3000);
+    setReportDialogOpen(true);
   };
 
+  // 对话框里点击"下载 Word"按钮 - 真正下载
   const handleDownload = () => {
-    toast.info("提示：当前示例仅支持预览，暂不提供 PDF 下载能力");
+    if (!reportCacheRef.current) {
+      toast.error("报告缓存已失效，请重新查询企业");
+      return;
+    }
+
+    downloadFromCache(reportCacheRef.current);
+    toast.success("Word 报告已下载");
   };
 
   const handleReportDialogChange = (open: boolean) => {
     setReportDialogOpen(open);
-    if (!open) {
-      setCurrentReportType(null);
-    }
+  };
+
+  // 生成信息科技管理尽调报告
+  const handleGenerateTechReport = () => {
+    toast.info("信息科技管理尽调报告功能开发中，敬请期待");
   };
 
   return (
@@ -241,23 +312,6 @@ export default function TianyanchaToolPage() {
                 </div>
               </div>
             </form>
-
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>常用示例：</span>
-              {suggestions.map((item) => (
-                <Badge
-                  key={item}
-                  variant="outline"
-                  role="button"
-                  tabIndex={0}
-                  className="cursor-pointer"
-                  onClick={() => handleSuggestionClick(item)}
-                  onKeyDown={(event) => handleSuggestionKeyDown(event, item)}
-                >
-                  {item}
-                </Badge>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
@@ -289,34 +343,21 @@ export default function TianyanchaToolPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Button
               type="button"
-              onClick={() => handleGenerateReport("tech")}
-              disabled={!company || isGeneratingReport}
+              onClick={handleGenerateTechReport}
+              disabled={!company}
               className="justify-center"
             >
-              {isGeneratingReport && currentReportType === reportVariantLabels.tech ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  正在生成...
-                </>
-              ) : (
-                "生成信息科技管理尽调报告"
-              )}
+              生成信息科技管理尽调报告
             </Button>
             <Button
               type="button"
               variant="secondary"
-              onClick={() => handleGenerateReport("channel")}
-              disabled={!company || isGeneratingReport}
+              onClick={handleOpenReportDialog}
+              disabled={!company || !reportCacheRef.current}
               className="justify-center"
             >
-              {isGeneratingReport && currentReportType === reportVariantLabels.channel ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  正在生成...
-                </>
-              ) : (
-                "生成渠道准入尽调报告"
-              )}
+              <Download className="mr-2 h-4 w-4" />
+              下载渠道准入尽调报告
             </Button>
           </div>
         </div>
@@ -332,16 +373,16 @@ export default function TianyanchaToolPage() {
               <TabsTrigger value="scope">经营范围</TabsTrigger>
             </TabsList>
             <TabsContent value="business">
-              <CompanyBusinessInfo company={company} />
+              <NoDataPlaceholder title="经营信息" />
             </TabsContent>
             <TabsContent value="shareholders">
-              <CompanyShareholders shareholders={company.shareholders} />
+              <NoDataPlaceholder title="股东信息" />
             </TabsContent>
             <TabsContent value="changes">
-              <CompanyChanges changes={company.changeRecords} />
+              <NoDataPlaceholder title="变更记录" />
             </TabsContent>
             <TabsContent value="scope">
-              <CompanyBusinessScope company={company} />
+              <NoDataPlaceholder title="经营范围" />
             </TabsContent>
           </Tabs>
         </section>
@@ -350,40 +391,30 @@ export default function TianyanchaToolPage() {
       <Dialog open={reportDialogOpen} onOpenChange={handleReportDialogChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>尽调报告生成完成</DialogTitle>
-            <DialogDescription>所选模块已生成结构化内容，可继续完善后导出 PDF。</DialogDescription>
+            <DialogTitle>{CHANNEL_REPORT_LABEL}</DialogTitle>
+            <DialogDescription>
+              报告已生成，点击下方按钮下载 Word 文件。
+            </DialogDescription>
           </DialogHeader>
-          {report ? (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">报告类型：{currentReportType ?? "信息尽调报告"}</p>
-                <p className="text-sm text-muted-foreground">企业名称：{report.companyName}</p>
-                <p className="text-sm text-muted-foreground">生成时间：{new Date(report.generatedAt).toLocaleString()}</p>
-              </div>
-              <p className="leading-relaxed text-sm">{report.summary}</p>
-              <Separator />
-              <div className="space-y-2 text-sm">
-                <p className="font-medium">包含模块</p>
-                <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-                  {Object.entries(report.sections)
-                    .filter(([, enabled]) => enabled)
-                    .map(([section]) => (
-                      <li key={section}>
-                        {reportSectionLabels[section as keyof typeof reportSectionLabels] ?? section}
-                      </li>
-                    ))}
-                </ul>
-              </div>
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4 bg-muted/50">
+              <p className="text-sm font-medium">企业名称</p>
+              <p className="text-sm text-muted-foreground">{reportCacheRef.current?.companyName ?? company?.name}</p>
+              <p className="text-sm font-medium mt-3">生成时间</p>
+              <p className="text-sm text-muted-foreground">
+                {reportCacheRef.current?.generatedAt.toLocaleString() ?? "-"}
+              </p>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">正在整理报告内容...</p>
-          )}
+            <p className="text-xs text-muted-foreground">
+              提示：报告缓存在浏览器内存中，页面关闭后自动清除。
+            </p>
+          </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => handleReportDialogChange(false)}>
               关闭
             </Button>
             <Button onClick={handleDownload}>
-              <FileText className="mr-2 h-4 w-4" /> 导出 PDF
+              <Download className="mr-2 h-4 w-4" /> 下载 Word
             </Button>
           </DialogFooter>
         </DialogContent>
