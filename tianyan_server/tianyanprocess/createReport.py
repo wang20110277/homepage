@@ -3,6 +3,13 @@ from docx import Document
 import os
 
 
+def safe_str(value, default=''):
+    """安全转换为字符串，处理 None 值"""
+    if value is None:
+        return default
+    return str(value)
+
+
 def load_json(file_path):
     """加载 JSON 文件"""
     try:
@@ -21,12 +28,12 @@ def extract_fields(json_data):
     actual_controller_list = (json_data.get('result') or {}).get('actualControllerList', [])
     extracted_data['actualControllerList'] = [
         {
-            'hId': item.get('hId', ''),
-            'hPid': item.get('hPid', ''),
-            'gId': item.get('gId', ''),
-            'name': item.get('name', ''),
-            'type': item.get('type', ''),
-            'ratio': item.get('ratio', '')
+            'hId': safe_str(item.get('hId')),
+            'hPid': safe_str(item.get('hPid')),
+            'gId': safe_str(item.get('gId')),
+            'name': safe_str(item.get('name')),
+            'type': safe_str(item.get('type')),
+            'ratio': safe_str(item.get('ratio'))
         }
         for item in actual_controller_list
     ]
@@ -49,19 +56,20 @@ def extract_fields(json_data):
     nodes = []
     for path_key, path_value in (json_data.get('result') or {}).get('pathMap', {}).items():
         for node in path_value.get('nodes', []):
+            labels = node.get('labels') or []  # 处理 None 值
             node_info = {
-                'id': node.get('id', ''),
-                'labels': node.get('labels', [])
+                'id': safe_str(node.get('id')),
+                'labels': labels
             }
             # 当labels为Human时，提取额外字段
-            if 'Human' in node.get('labels', []):
-                node_info['name'] = node.get('properties', {}).get('name', '')
-                node_info['type'] = node.get('properties', {}).get('type', '')
-                node_info['cid'] = node.get('properties', {}).get('cid', '')
-            elif 'Company' in node.get('labels', []):
-                node_info['name'] = node.get('properties', {}).get('name', '')
-                node_info['type'] = node.get('properties', {}).get('type', '')
-                node_info['gid'] = node.get('properties', {}).get('gid', '')
+            if 'Human' in labels:
+                node_info['name'] = safe_str(node.get('properties', {}).get('name'))
+                node_info['type'] = safe_str(node.get('properties', {}).get('type'))
+                node_info['cid'] = safe_str(node.get('properties', {}).get('cid'))
+            elif 'Company' in labels:
+                node_info['name'] = safe_str(node.get('properties', {}).get('name'))
+                node_info['type'] = safe_str(node.get('properties', {}).get('type'))
+                node_info['gid'] = safe_str(node.get('properties', {}).get('gid'))
             nodes.append(node_info)
     extracted_data['nodes'] = nodes
 
@@ -298,8 +306,8 @@ def create_report(output_path, word_path_file):
                         plaintiff_name = plaintiffs[0].get("name", "未知原告")
 
                 new_row.cells[0].text = f'原告：{plaintiff_name}\n被告：{defendant}'
-                new_row.cells[1].text = law_suits[i].get("casetype", "")
-                new_row.cells[2].text = law_suits[i].get("casereason", "")
+                new_row.cells[1].text = safe_str(law_suits[i].get("casetype"))
+                new_row.cells[2].text = safe_str(law_suits[i].get("casereason"))
         else:
             print("提示: 该企业暂无司法风险数据")
     else:
@@ -313,10 +321,10 @@ def create_report(output_path, word_path_file):
 
         for change in changes:
             new_row = table2.add_row()
-            new_row.cells[0].text = change.get('changeTime', "")
-            new_row.cells[1].text = change.get('changeItem', "")
-            new_row.cells[2].text = change.get('contentBefore', "")
-            new_row.cells[3].text = change.get('contentAfter', "")
+            new_row.cells[0].text = safe_str(change.get('changeTime'))
+            new_row.cells[1].text = safe_str(change.get('changeItem'))
+            new_row.cells[2].text = safe_str(change.get('contentBefore'))
+            new_row.cells[3].text = safe_str(change.get('contentAfter'))
     else:
         print("警告: 文档缺少第三个表格（工商变更）")
 
@@ -326,14 +334,14 @@ def create_report(output_path, word_path_file):
         shareholders = main_data.get("企业股东", [])
 
         for i, shareholder in enumerate(shareholders):
-            capitals = shareholder.get("capital", [])
+            capitals = shareholder.get("capital") or []  # 处理 None 值
             for capital in capitals:
                 new_row = table3.add_row()
                 new_row.cells[0].text = str(i + 1)
-                new_row.cells[1].text = shareholder.get("name", "")
-                new_row.cells[2].text = capital.get("percent", "")
-                new_row.cells[3].text = capital.get("amomon", "")
-                new_row.cells[4].text = capital.get("time", "")
+                new_row.cells[1].text = safe_str(shareholder.get("name"))
+                new_row.cells[2].text = safe_str(capital.get("percent"))
+                new_row.cells[3].text = safe_str(capital.get("amomon"))
+                new_row.cells[4].text = safe_str(capital.get("time"))
     else:
         print("警告: 文档缺少第四个表格（控股股东）")
 
@@ -344,9 +352,14 @@ def create_report(output_path, word_path_file):
 
         for i, controller in enumerate(controllers):
             new_row = table4.add_row()
-            new_row.cells[0].text = str(controller.get('type', ''))
-            new_row.cells[1].text = controller.get('name', '')
-            new_row.cells[2].text = str(controller.get('ratio', ''))
+            # 注意：当值为 None 时，.get() 仍返回 None，需要额外处理
+            controller_type = controller.get('type')
+            controller_name = controller.get('name')
+            controller_ratio = controller.get('ratio')
+
+            new_row.cells[0].text = str(controller_type) if controller_type is not None else ''
+            new_row.cells[1].text = controller_name if controller_name is not None else ''
+            new_row.cells[2].text = str(controller_ratio) if controller_ratio is not None else ''
     else:
         print("警告: 文档缺少第五个表格（实际控制人）")
 
@@ -358,9 +371,10 @@ def create_report(output_path, word_path_file):
 
         for staff in staff_items:
             new_row = table5.add_row()
-            new_row.cells[0].text = staff.get('typeJoin', [''])[0]  # 取第一个职位
-            new_row.cells[1].text = staff.get('name', '')
-            new_row.cells[2].text = staff.get('hcgid', '')
+            type_join = staff.get('typeJoin') or ['']  # 处理 None 值
+            new_row.cells[0].text = safe_str(type_join[0]) if type_join else ''
+            new_row.cells[1].text = safe_str(staff.get('name'))
+            new_row.cells[2].text = safe_str(staff.get('hcgid'))
     else:
         print("警告: 文档缺少第六个表格（主要人员）")
 

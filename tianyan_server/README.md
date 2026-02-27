@@ -54,7 +54,7 @@ cd tianyan_server
 python api.py
 ```
 
-服务将在 `http://127.0.0.1:5000` 启动。
+服务将在 `http://127.0.0.1:5001` 启动。
 
 ### 生产环境部署
 
@@ -62,7 +62,7 @@ python api.py
 
 ```bash
 pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 api:app
+gunicorn -w 4 -b 0.0.0.0:5001 api:app
 ```
 
 ## API 接口
@@ -84,7 +84,7 @@ gunicorn -w 4 -b 0.0.0.0:5000 api:app
 
 示例：
 ```bash
-curl -X POST http://127.0.0.1:5000/api/generate_report \
+curl -X POST http://127.0.0.1:5001/api/generate_report \
   -H "Content-Type: application/json" \
   -d '{"company_name": "阿里巴巴"}' \
   --output report.docx
@@ -108,8 +108,8 @@ curl -X POST http://127.0.0.1:5000/api/generate_report \
 
 在 `.env` 文件中配置：
 ```
-TIANYAN_SERVICE_URL=http://127.0.0.1:5000
-NEXT_PUBLIC_TIANYAN_SERVICE_URL=http://127.0.0.1:5000
+TIANYAN_SERVICE_URL=http://127.0.0.1:5001
+NEXT_PUBLIC_TIANYAN_SERVICE_URL=http://127.0.0.1:5001
 ```
 
 ## 注意事项

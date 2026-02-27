@@ -1,12 +1,14 @@
 import json
 
-# 获取字段，若字段不存在则返回 'null'
+# 获取字段，若字段不存在或值为 None 则返回 'null'
 
 
 def get_field(data, keys):
     for key in keys:
-        data = data.get(key, 'null')
-    return data
+        data = data.get(key)
+        if data is None:
+            return 'null'
+    return data if data is not None else 'null'
 
 
 def extract_data(output_path):

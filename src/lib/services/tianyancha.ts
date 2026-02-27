@@ -6,7 +6,7 @@
 import { logInfo, logError } from "@/lib/core/logger";
 
 const TIANYAN_SERVICE_URL =
-  process.env.TIANYAN_SERVICE_URL || "http://127.0.0.1:5000";
+  process.env.TIANYAN_SERVICE_URL || "http://127.0.0.1:5001";
 
 const TIANYAN_TIMEOUT = parseInt(
   process.env.TIANYAN_TIMEOUT || "120000",

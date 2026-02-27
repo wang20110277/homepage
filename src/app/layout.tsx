@@ -4,9 +4,9 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
-import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import { QueryProvider } from "@/components/query-provider";
+import { ShootingStarsClient } from "@/components/shooting-stars-client";
 
 export const metadata: Metadata = {
   title: "工作台系统 - 集成多种实用工具的一站式工作平台",
@@ -32,11 +32,11 @@ export default function RootLayout({
             <div className="relative min-h-screen overflow-hidden">
               <div className="pointer-events-none absolute inset-0 bg-background/95">
                 <StarsBackground className="opacity-60" />
-                <ShootingStars minDelay={800} maxDelay={1500} />
-                <ShootingStars minDelay={800} maxDelay={1500} />
-                <ShootingStars minDelay={800} maxDelay={1500} />
-                <ShootingStars minDelay={800} maxDelay={1500} />
-                <ShootingStars minDelay={800} maxDelay={1500} />
+                <ShootingStarsClient minDelay={800} maxDelay={1500} />
+                <ShootingStarsClient minDelay={800} maxDelay={1500} />
+                <ShootingStarsClient minDelay={800} maxDelay={1500} />
+                <ShootingStarsClient minDelay={800} maxDelay={1500} />
+                <ShootingStarsClient minDelay={800} maxDelay={1500} />
               </div>
               <div className="relative z-10 flex min-h-screen flex-col bg-transparent">
                 <SiteHeader />

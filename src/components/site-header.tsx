@@ -66,7 +66,7 @@ export function SiteHeader() {
             {/* Text */}
             <div className="flex flex-col">
               <span className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors duration-300">
-                主页
+                大模型服务平台
               </span>
               <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-primary to-accent transition-all duration-300" />
             </div>
@@ -99,7 +99,9 @@ export function SiteHeader() {
             <nav className="hidden md:flex items-center gap-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                const isActive =
+                  pathname === item.href ||
+                  pathname?.startsWith(item.href + "/");
 
                 return (
                   <Link
@@ -109,7 +111,7 @@ export function SiteHeader() {
                       "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -147,7 +149,9 @@ export function SiteHeader() {
                 <nav className="flex flex-col gap-2 mt-6">
                   {navigation.map((item) => {
                     const Icon = item.icon;
-                    const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                    const isActive =
+                      pathname === item.href ||
+                      pathname?.startsWith(item.href + "/");
 
                     return (
                       <Link
@@ -157,7 +161,7 @@ export function SiteHeader() {
                           "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md transition-colors",
                           isActive
                             ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
                         )}
                       >
                         <Icon className="h-5 w-5" />

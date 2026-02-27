@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { FileText, Files, ArrowRight, Loader2, Download, CheckCircle2, AlertCircle, Settings2 } from "lucide-react";
+import { FileText, Files, ArrowRight, Loader2, CheckCircle2, AlertCircle, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/tools/file-upload";
@@ -219,7 +219,7 @@ export default function FileCompareClient() {
                 对比完成！
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300">
-                文件 "{filename}" 已下载到您的浏览器下载文件夹
+                文件 &quot;{filename}&quot; 已下载到您的浏览器下载文件夹
               </p>
             </div>
           </div>

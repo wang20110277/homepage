@@ -1,10 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useId } from "react";
 
 interface ShootingStar {
-  id: number;
   x: number;
   y: number;
   angle: number;
@@ -25,24 +24,6 @@ interface ShootingStarsProps {
   className?: string;
 }
 
-const getRandomStartPoint = () => {
-  const side = Math.floor(Math.random() * 4);
-  const offset = Math.random() * window.innerWidth;
-
-  switch (side) {
-    case 0:
-      return { x: offset, y: 0, angle: 45 };
-    case 1:
-      return { x: window.innerWidth, y: offset, angle: 135 };
-    case 2:
-      return { x: offset, y: window.innerHeight, angle: 225 };
-    case 3:
-      return { x: 0, y: offset, angle: 315 };
-    default:
-      return { x: 0, y: 0, angle: 45 };
-  }
-};
-
 export const ShootingStars: React.FC<ShootingStarsProps> = ({
   minSpeed = 5,
   maxSpeed = 10,
@@ -54,17 +35,55 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
   starHeight = 1,
   className,
 }) => {
-  const [star, setStar] = useState<ShootingStar | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const rectRef = useRef<SVGRectElement>(null);
+  const starRef = useRef<ShootingStar | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const gradientId = useId();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    const svg = svgRef.current;
+    const rect = rectRef.current;
+    if (!svg || !rect) return;
+
+    const getRandomStartPoint = () => {
+      const side = Math.floor(Math.random() * 4);
+      const offset = Math.random() * window.innerWidth;
+
+      switch (side) {
+        case 0:
+          return { x: offset, y: 0, angle: 45 };
+        case 1:
+          return { x: window.innerWidth, y: offset, angle: 135 };
+        case 2:
+          return { x: offset, y: window.innerHeight, angle: 225 };
+        case 3:
+          return { x: 0, y: offset, angle: 315 };
+        default:
+          return { x: 0, y: 0, angle: 45 };
+      }
+    };
+
+    let isRunning = true;
+
+    const updateStarPosition = () => {
+      const star = starRef.current;
+      if (!star) return;
+
+      const width = starWidth * star.scale;
+      rect.setAttribute("x", String(star.x));
+      rect.setAttribute("y", String(star.y));
+      rect.setAttribute("width", String(width));
+      const transformValue = `rotate(${star.angle}, ${star.x + width / 2}, ${star.y + starHeight / 2})`;
+      rect.setAttribute("transform", transformValue);
+    };
 
     const createStar = () => {
+      if (!isRunning) return;
+
       const { x, y, angle } = getRandomStartPoint();
-      const newStar: ShootingStar = {
-        id: Date.now(),
+      starRef.current = {
         x,
         y,
         angle,
@@ -72,91 +91,84 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
         speed: Math.random() * (maxSpeed - minSpeed) + minSpeed,
         distance: 0,
       };
-      setStar(newStar);
+
+      rect.style.display = "block";
+      updateStarPosition();
 
       const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
-      timeoutId = setTimeout(createStar, randomDelay);
+      timeoutRef.current = setTimeout(createStar, randomDelay);
     };
 
-    createStar();
+    const animate = () => {
+      if (!isRunning) return;
 
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      const star = starRef.current;
+      if (!star) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
       }
-    };
-  }, [minSpeed, maxSpeed, minDelay, maxDelay]);
 
-  useEffect(() => {
-    const moveStar = () => {
-      setStar((prevStar) => {
-        if (!prevStar) return null;
-        const newX =
-          prevStar.x +
-          prevStar.speed * Math.cos((prevStar.angle * Math.PI) / 180);
-        const newY =
-          prevStar.y +
-          prevStar.speed * Math.sin((prevStar.angle * Math.PI) / 180);
-        const newDistance = prevStar.distance + prevStar.speed;
-        const newScale = 1 + newDistance / 100;
-        if (
-          newX < -20 ||
-          newX > window.innerWidth + 20 ||
-          newY < -20 ||
-          newY > window.innerHeight + 20
-        ) {
-          return null;
-        }
-        return {
-          ...prevStar,
+      const newX =
+        star.x + star.speed * Math.cos((star.angle * Math.PI) / 180);
+      const newY =
+        star.y + star.speed * Math.sin((star.angle * Math.PI) / 180);
+      const newDistance = star.distance + star.speed;
+      const newScale = 1 + newDistance / 100;
+
+      if (
+        newX < -20 ||
+        newX > window.innerWidth + 20 ||
+        newY < -20 ||
+        newY > window.innerHeight + 20
+      ) {
+        starRef.current = null;
+        rect.style.display = "none";
+      } else {
+        starRef.current = {
+          ...star,
           x: newX,
           y: newY,
           distance: newDistance,
           scale: newScale,
         };
-      });
+        updateStarPosition();
+      }
 
-      // 继续动画循环
-      animationFrameRef.current = requestAnimationFrame(moveStar);
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    // 启动动画循环
-    animationFrameRef.current = requestAnimationFrame(moveStar);
+    createStar();
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
+      isRunning = false;
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, []); // 空依赖数组，只在组件挂载时运行一次
+  }, [minSpeed, maxSpeed, minDelay, maxDelay, starWidth, starHeight]);
 
   return (
     <svg
       ref={svgRef}
       className={cn("absolute inset-0 h-full w-full", className)}
     >
-      {star && (
-        <rect
-          key={star.id}
-          x={star.x}
-          y={star.y}
-          width={starWidth * star.scale}
-          height={starHeight}
-          fill="url(#gradient)"
-          transform={`rotate(${star.angle}, ${
-            star.x + (starWidth * star.scale) / 2
-          }, ${star.y + starHeight / 2})`}
-        />
-      )}
       <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: trailColor, stopOpacity: 0 }} />
-          <stop
-            offset="100%"
-            style={{ stopColor: starColor, stopOpacity: 1 }}
-          />
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={trailColor} stopOpacity={0} />
+          <stop offset="100%" stopColor={starColor} stopOpacity={1} />
         </linearGradient>
       </defs>
+      <rect
+        ref={rectRef}
+        fill={`url(#${gradientId})`}
+        width={starWidth}
+        height={starHeight}
+        display="none"
+      />
     </svg>
   );
 };
