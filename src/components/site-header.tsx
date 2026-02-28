@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { LayoutDashboard, Presentation, FolderOpen, Menu } from "lucide-react";
@@ -34,7 +35,12 @@ const navigation = [
 export function SiteHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [isMounted, setIsMounted] = useState(false);
   const isHomePage = pathname === ROUTES.HOME;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check if current page is PPT-related
   const isPPTPage = isPPTRoute(pathname);
@@ -47,34 +53,37 @@ export function SiteHeader() {
     return null;
   }
 
-  const userName = session?.user?.name || "用户";
+  // 服务端渲染时显示占位符，避免 hydration 不匹配
+  const userName = isMounted ? (session?.user?.name || "用户") : "用户";
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-gradient-to-r from-background via-primary/[0.02] to-background backdrop-blur-xl">
+      {/* Logo Section - 绝对定位到最左边 */}
+      <Link
+        href={ROUTES.HOME}
+        className="absolute left-6 top-1/2 -translate-y-1/2 z-10 group flex items-center gap-3 transition-all duration-300"
+      >
+        {/* Icon */}
+        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:border-primary/40 group-hover:shadow-lg group-hover:shadow-primary/10">
+          <LayoutDashboard className="h-5 w-5 text-primary transition-all duration-300 group-hover:scale-110" />
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col">
+          <span className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors duration-300">
+            大模型服务平台
+          </span>
+          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-primary to-accent transition-all duration-300" />
+        </div>
+      </Link>
+
+      {/* Main Content */}
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Left Section - Logo and Welcome/Navigation */}
+        {/* Left Section - Welcome/Navigation */}
         <div className="flex items-center gap-8 flex-1">
-          <Link
-            href={ROUTES.HOME}
-            className="group flex items-center gap-3 transition-all duration-300"
-          >
-            {/* Icon */}
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:border-primary/40 group-hover:shadow-lg group-hover:shadow-primary/10">
-              <LayoutDashboard className="h-5 w-5 text-primary transition-all duration-300 group-hover:scale-110" />
-            </div>
-
-            {/* Text */}
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors duration-300">
-                大模型服务平台
-              </span>
-              <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-primary to-accent transition-all duration-300" />
-            </div>
-          </Link>
-
           {/* Welcome message - Only show on home page */}
           {isHomePage && (
-            <div className="hidden lg:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-6 ml-48">
               {/* Separator */}
               <div className="h-10 w-px bg-gradient-to-b from-transparent via-border to-transparent" />
 
@@ -87,7 +96,7 @@ export function SiteHeader() {
                 </span>
                 <span className="text-xs text-muted-foreground/60">·</span>
                 <span className="text-sm text-muted-foreground/90">
-                  您的工作台，一站式管理
+                  您的工作台
                 </span>
                 <span className="text-base">✨</span>
               </div>
@@ -96,7 +105,7 @@ export function SiteHeader() {
 
           {/* Desktop Navigation - Only show on PPT pages */}
           {shouldShowPPTNav && (
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1 ml-48">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive =

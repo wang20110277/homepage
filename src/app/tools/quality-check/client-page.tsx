@@ -107,6 +107,16 @@ export default function QualityCheckClient() {
         signal: abortControllerRef.current.signal,
       });
 
+      // 检查响应类型，确保是 JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        // 如果不是 JSON，可能是会话过期导致重定向到登录页
+        if (response.status === 401) {
+          throw new Error("会话已过期，请重新登录");
+        }
+        throw new Error("服务器响应异常，请刷新页面重试");
+      }
+
       const data = await response.json();
 
       if (!response.ok || !data.success) {

@@ -41,15 +41,13 @@ export default function LandingPage() {
             <p className="text-4xl font-semibold leading-tight text-gray-900 md:text-5xl lg:text-6xl">
               Consumer Finance Company
             </p>
-            <p className="text-lg text-gray-900">
-              <span className="font-semibold">
-                用人工智能重塑工作方式，驱动效率跃升与创新突破
-              </span>
+            <p className="text-2xl font-bold text-gray-800 md:text-3xl">
+              大模型服务平台
             </p>
           </div>
 
           {/* Login Button */}
-          <div className="mt-12 flex w-full max-w-md justify-center">
+          <div className="mt-6 flex w-full max-w-md flex-col items-center justify-center">
             <div className="w-full max-w-sm space-y-4">
               {error && (
                 <Alert
@@ -77,11 +75,13 @@ export default function LandingPage() {
                   "立即体验"
                 )}
               </Button>
-
-              <p className="text-center text-xs text-gray-600">
-                登录即表示您同意我们的服务条款和隐私政策
-              </p>
             </div>
+
+            <p className="mt-8 text-lg text-gray-900">
+              <span className="font-semibold">
+                用人工智能重塑工作方式，驱动效率跃升与创新突破
+              </span>
+            </p>
           </div>
         </div>
       </WavyBackground>
