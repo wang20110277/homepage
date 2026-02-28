@@ -15,7 +15,7 @@
     "db:dev": "drizzle-kit push",
     "db:reset": "drizzle-kit drop && drizzle-kit push",
     "db:seed": "tsx src/lib/db-seed.ts",
-    "test:ppt": "tsx scripts/test-ppt-generation.ts"
+    "db:test": "tsx scripts/test-db-connection.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.60",
