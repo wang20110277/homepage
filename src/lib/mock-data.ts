@@ -2,7 +2,6 @@ import type {
   Todo,
   Announcement,
   PPTTemplate,
-  OCRResult,
 } from "@/types";
 
 const demoUserId = "test-user-001";
@@ -308,52 +307,3 @@ export const mockPPTTemplates: PPTTemplate[] = [
     createdAt: "2025-11-04T14:30:00Z",
   },
 ];
-
-// Mock OCR 识别结果数据
-export const mockOCRResults: Record<string, OCRResult> = {
-  normal: {
-    id: "ocr-001",
-    text: "这是一段通过 OCR 识别得到的文本内容。\n\n本文档包含了多行文字，识别效果良好。\n\n文字识别技术可以将图片中的文字转换为可编辑的文本格式，极大地提高了工作效率。",
-    confidence: 0.95,
-    processTime: 1200,
-    mode: "normal",
-    modelSize: "recommended",
-    createdAt: "2025-11-13T10:30:00Z",
-  },
-  structured: {
-    id: "ocr-002",
-    text: `# 文档标题
-
-## 第一章 概述
-
-这是第一章的内容，包含了结构化的信息。
-
-### 1.1 背景介绍
-
-背景介绍的详细内容...
-
-### 1.2 目标说明
-
-- 目标 1：提高识别准确率
-- 目标 2：优化处理速度
-- 目标 3：支持多种文档格式
-
-## 第二章 技术方案
-
-技术方案的详细描述...`,
-    confidence: 0.92,
-    processTime: 2500,
-    mode: "structured",
-    modelSize: "recommended",
-    createdAt: "2025-11-13T10:35:00Z",
-  },
-  custom: {
-    id: "ocr-003",
-    text: "自定义模式识别结果。\n\n本模式可以根据用户的特定需求进行定制化识别。\n\n支持特殊格式、特定字段的提取等高级功能。",
-    confidence: 0.89,
-    processTime: 3200,
-    mode: "custom",
-    modelSize: "large",
-    createdAt: "2025-11-13T10:40:00Z",
-  },
-};

@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CometCard } from "@/components/ui/comet-card";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -30,7 +29,7 @@ export function TodoWidget() {
   ];
 
   return (
-    <CometCard disableEffects>
+    <div className="rounded-2xl">
       <Card className="border-white/10 bg-background/80 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base">待办事项</CardTitle>
@@ -72,6 +71,6 @@ export function TodoWidget() {
           </div>
         </CardContent>
       </Card>
-    </CometCard>
+    </div>
   );
 }

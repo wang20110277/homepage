@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CometCard } from "@/components/ui/comet-card";
 import { Bell } from "lucide-react";
 import { mockAnnouncements } from "@/lib/mock-data";
 import ReactMarkdown from "react-markdown";
@@ -21,7 +20,7 @@ export function AnnouncementsWidget() {
   };
 
   return (
-    <CometCard disableEffects>
+    <div className="rounded-2xl">
       <Card className="border-white/10 bg-background/80 rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -76,6 +75,6 @@ export function AnnouncementsWidget() {
           </div>
         </CardContent>
       </Card>
-    </CometCard>
+    </div>
   );
 }

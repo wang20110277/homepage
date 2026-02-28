@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CometCard } from "@/components/ui/comet-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Search, Grid3x3, X, Presentation, ScanText, Building2, ClipboardCheck, GitCompare } from "lucide-react";
@@ -266,7 +265,7 @@ export function AppsDrawer({ tools, children, trigger }: AppsDrawerProps) {
                 const Icon = config.icon;
 
                 return (
-                  <CometCard key={tool.id} disableEffects>
+                  <div key={tool.id} className="rounded-2xl">
                     <div className="relative group">
                       {/* Gradient glow background */}
                       {!disabled && (
@@ -348,7 +347,7 @@ export function AppsDrawer({ tools, children, trigger }: AppsDrawerProps) {
                         </div>
                       </div>
                     </div>
-                  </CometCard>
+                  </div>
                 );
               })}
             </div>

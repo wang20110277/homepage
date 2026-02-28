@@ -12,7 +12,6 @@ import {
 } from "@/lib/api/open-webui";
 import type { OpenWebuiChatSummary } from "@/types/open-webui";
 import { useChatStore } from "@/hooks/useChatStore";
-import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -72,7 +71,6 @@ export function ChatListPanel() {
         (existing = []) => [chat, ...existing]
       );
       setActiveChatId(chat.id);
-      trackEvent("chat_created", { chatId: chat.id, model: chat.model });
       toast.success("Chat created");
     },
     onError: (error) => {
@@ -98,7 +96,6 @@ export function ChatListPanel() {
           ?.find((chat) => chat.id !== chatId);
         setActiveChatId(fallback?.id);
       }
-      trackEvent("chat_deleted", { chatId });
       toast.success("Chat deleted");
     },
     onError: (error) => {
@@ -120,7 +117,6 @@ export function ChatListPanel() {
         (existing = []) =>
           existing.map((item) => (item.id === chat.id ? chat : item))
       );
-      trackEvent("chat_renamed", { chatId: chat.id });
       toast.success("Chat renamed");
     },
     onError: (error) => {
@@ -168,7 +164,6 @@ export function ChatListPanel() {
         (existing = []) => [chat, ...existing]
       );
       setActiveChatId(chat.id);
-      trackEvent("chat_duplicated", { chatId: chat.id });
       toast.success("Chat duplicated");
     },
     onError: (error) => {
@@ -277,7 +272,6 @@ export function ChatListPanel() {
                   <div
                     onClick={() => {
                       setActiveChatId(chat.id);
-                      trackEvent("chat_opened", { chatId: chat.id });
                     }}
                     className={cn(
                       "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-all duration-200",

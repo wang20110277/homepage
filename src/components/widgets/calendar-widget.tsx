@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CometCard } from "@/components/ui/comet-card";
 import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -52,7 +51,7 @@ export function CalendarWidget() {
   }
 
   return (
-    <CometCard disableEffects>
+    <div className="rounded-2xl">
       <Card className="border-white/10 bg-background/80 rounded-2xl">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -118,6 +117,6 @@ export function CalendarWidget() {
           </div>
         </CardContent>
       </Card>
-    </CometCard>
+    </div>
   );
 }

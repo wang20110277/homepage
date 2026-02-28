@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -309,7 +308,6 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
             onValueChange={(value) => {
               if (!activeChatId) return;
               setSelectedModel(activeChatId, value);
-              trackEvent("chat_model_changed", { chatId: activeChatId, model: value });
             }}
             disabled={modelsQuery.isLoading || !modelsQuery.data?.length || isStreaming}
           >
