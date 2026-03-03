@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 
-export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare";
+export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
 
 const TOOL_PERMISSION_MAP: Record<
   ToolId,
@@ -13,6 +13,7 @@ const TOOL_PERMISSION_MAP: Record<
   tianyancha: { resource: "tianyancha", action: "read" },
   qualityCheck: { resource: "qualityCheck", action: "read" },
   fileCompare: { resource: "fileCompare", action: "read" },
+  zimage: { resource: "zimage", action: "read" },
 };
 
 interface AccessResult {

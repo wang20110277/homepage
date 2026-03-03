@@ -39,8 +39,9 @@ export const tenants = pgTable("tenants", {
       tianyancha: boolean;
       qualityCheck: boolean;
       fileCompare: boolean;
+      zimage: boolean;
     }>()
-    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true,"fileCompare":true}'::jsonb`)
+    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true,"fileCompare":true,"zimage":true}'::jsonb`)
     .notNull(),
 });
 

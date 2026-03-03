@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare";
+type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
 
 const TOOL_DEFINITIONS: Array<{
   id: ToolFeature;
@@ -40,6 +40,11 @@ const TOOL_DEFINITIONS: Array<{
     name: "Document Comparison",
     description: "Allow Word and PDF document comparison with diff reports.",
   },
+  {
+    id: "zimage",
+    name: "AI Image Generator",
+    description: "Enable AI-powered image generation from text prompts.",
+  },
 ];
 
 function normalizeFeatures(
@@ -51,6 +56,7 @@ function normalizeFeatures(
     tianyancha: Boolean(input?.tianyancha ?? true),
     qualityCheck: Boolean(input?.qualityCheck ?? true),
     fileCompare: Boolean(input?.fileCompare ?? true),
+    zimage: Boolean(input?.zimage ?? true),
   };
 }
 

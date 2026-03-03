@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck, GitCompare } from "lucide-react";
+import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck, GitCompare, ImageIcon } from "lucide-react";
 
 const tools = [
   {
@@ -65,6 +65,18 @@ const tools = [
     gradientFrom: "from-tool-pink/20",
     gradientTo: "to-tool-pink/5",
     borderGlow: "group-hover:shadow-tool-pink/50",
+  },
+  {
+    id: "zimage",
+    title: "AI 图像生成",
+    description: "输入文字描述，AI 智能生成高质量图像",
+    icon: ImageIcon,
+    href: "/tools/zimage",
+    color: "text-tool-cyan",
+    bgColor: "bg-tool-cyan/10",
+    gradientFrom: "from-tool-cyan/20",
+    gradientTo: "to-tool-cyan/5",
+    borderGlow: "group-hover:shadow-tool-cyan/50",
   },
 ];
 

@@ -7,19 +7,23 @@ export function middleware(request: NextRequest) {
     request.cookies.get("better-auth.session_token");
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ["/login", "/unauthorized", "/api/auth"];
-  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+  const publicPaths = ["/", "/unauthorized", "/api/auth"];
+  const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith(path + "/"));
+  const isApiRoute = pathname.startsWith("/api/");
 
-  if (!sessionToken && !isPublicPath && pathname !== "/") {
+  if (!sessionToken && !isPublicPath) {
+    // For API routes, return 401 JSON error instead of redirecting
+    if (isApiRoute) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "请先登录" },
+        { status: 401 }
+      );
+    }
+
+    // Redirect to landing page with callback URL
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
     url.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (sessionToken && pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/home";
     return NextResponse.redirect(url);
   }
 
@@ -27,5 +31,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|favicon.png|.*\\.(?:png|jpg|jpeg|svg|gif|webp)).*)"],
 };

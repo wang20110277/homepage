@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { signInWithOIDC } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { WavyBackground } from "@/components/ui/wavy-background";
@@ -8,6 +9,8 @@ import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LandingPage() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +18,7 @@ export default function LandingPage() {
     try {
       setIsLoading(true);
       setError(null);
-      await signInWithOIDC();
+      await signInWithOIDC(callbackUrl || "/home");
       // OIDC will handle the redirect after successful login
     } catch (err) {
       console.error("OIDC login failed", err);
@@ -49,6 +52,14 @@ export default function LandingPage() {
           {/* Login Button */}
           <div className="mt-6 flex w-full max-w-md flex-col items-center justify-center">
             <div className="w-full max-w-sm space-y-4">
+              {callbackUrl && (
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertDescription className="text-blue-900">
+                    请登录后继续访问
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {error && (
                 <Alert
                   variant="destructive"

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { LayoutDashboard, Presentation, FolderOpen, Menu } from "lucide-react";
+import { Presentation, FolderOpen, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -65,7 +65,7 @@ export function SiteHeader() {
       >
         {/* Icon */}
         <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:border-primary/40 group-hover:shadow-lg group-hover:shadow-primary/10">
-          <LayoutDashboard className="h-5 w-5 text-primary transition-all duration-300 group-hover:scale-110" />
+          <img src="/favicon.png" alt="Logo" width={24} height={24} className="transition-all duration-300 group-hover:scale-110" />
         </div>
 
         {/* Text */}

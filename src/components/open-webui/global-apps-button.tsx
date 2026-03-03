@@ -46,6 +46,12 @@ const ALL_TOOLS: Omit<ToolStatus, "access">[] = [
     description: "Word 和 PDF 文档内容对比分析",
     href: "/tools/file-compare",
   },
+  {
+    id: "zimage",
+    name: "AI 图像生成",
+    description: "输入文字描述生成高质量图像",
+    href: "/tools/zimage",
+  },
 ];
 
 export function GlobalAppsButton() {

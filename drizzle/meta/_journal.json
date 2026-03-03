@@ -36,6 +36,13 @@
       "when": 1769313773632,
       "tag": "0004_brief_nehzno",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772508511897,
+      "tag": "0005_naive_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

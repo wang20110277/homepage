@@ -9,6 +9,7 @@ export const ROUTES = {
   PPT_GENERATOR: "/tools/ppt-generator",
   MY_PRESENTATIONS: "/tools/my-presentations",
   FILE_COMPARE: "/tools/file-compare",
+  ZIMAGE: "/tools/zimage",
 } as const;
 
 /**

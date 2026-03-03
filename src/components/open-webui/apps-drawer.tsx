@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Search, Grid3x3, X, Presentation, ScanText, Building2, ClipboardCheck, GitCompare } from "lucide-react";
+import { Search, Grid3x3, X, Presentation, ScanText, Building2, ClipboardCheck, GitCompare, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -79,6 +79,14 @@ const toolConfig: Record<
     gradientTo: "to-tool-pink/5",
     borderGlow: "group-hover:shadow-tool-pink/50",
   },
+  zimage: {
+    icon: ImageIcon,
+    color: "text-tool-cyan",
+    bgColor: "bg-tool-cyan/10",
+    gradientFrom: "from-tool-cyan/20",
+    gradientTo: "to-tool-cyan/5",
+    borderGlow: "group-hover:shadow-tool-cyan/50",
+  },
 };
 
 // 应用分类
@@ -114,6 +122,7 @@ const toolCategoryMap: Record<ToolId, ToolCategoryId> = {
   tianyancha: "dataQuery",
   qualityCheck: "review",
   fileCompare: "contentCreation",
+  zimage: "contentCreation",
 };
 
 export interface ToolStatus {
