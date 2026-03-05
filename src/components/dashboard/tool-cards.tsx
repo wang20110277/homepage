@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Presentation, ScanText, Building2, ArrowRight, ClipboardCheck, GitCompare, ImageIcon } from "lucide-react";
+import { Presentation, ScanText, Building2, ArrowRight, GitCompare, ImageIcon } from "lucide-react";
 
 const tools = [
   {
@@ -41,18 +41,6 @@ const tools = [
     gradientFrom: "from-tool-purple/20",
     gradientTo: "to-tool-purple/5",
     borderGlow: "group-hover:shadow-tool-purple/50",
-  },
-  {
-    id: "quality-check",
-    title: "质检结果查询",
-    description: "查询质检审核结果，支持多字段条件检索",
-    icon: ClipboardCheck,
-    href: "/tools/quality-check",
-    color: "text-tool-orange",
-    bgColor: "bg-tool-orange/10",
-    gradientFrom: "from-tool-orange/20",
-    gradientTo: "to-tool-orange/5",
-    borderGlow: "group-hover:shadow-tool-orange/50",
   },
   {
     id: "file-compare",

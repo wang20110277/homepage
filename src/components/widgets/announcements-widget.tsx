@@ -34,12 +34,12 @@ export function AnnouncementsWidget() {
               <p className="text-sm font-medium text-foreground mb-2">
                 {latestAnnouncement.title}
               </p>
-              <div className="text-xs text-muted-foreground mb-2 prose prose-sm dark:prose-invert max-w-none">
+              <div className="text-xs text-foreground mb-2 prose prose-sm dark:prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
                     p: ({ children }) => (
-                      <p className="mb-2 last:mb-0 text-xs leading-relaxed">
+                      <p className="mb-3 last:mb-0 text-sm leading-relaxed font-medium">
                         {children}
                       </p>
                     ),
@@ -50,11 +50,11 @@ export function AnnouncementsWidget() {
                     ),
                     hr: () => <hr className="my-3 border-border opacity-30" />,
                     ul: ({ children }) => (
-                      <ul className="space-y-1 ml-0 text-xs">{children}</ul>
+                      <ul className="space-y-2 ml-0 text-sm">{children}</ul>
                     ),
                     li: ({ children }) => (
-                      <li className="text-xs leading-relaxed flex items-start gap-2">
-                        <span className="text-foreground mt-1 select-none">•</span>
+                      <li className="text-sm leading-relaxed flex items-start gap-2.5">
+                        <span className="text-primary mt-1 select-none text-xs">•</span>
                         <span className="flex-1">{children}</span>
                       </li>
                     ),

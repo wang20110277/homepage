@@ -35,12 +35,6 @@ const ALL_TOOLS: Omit<ToolStatus, "access">[] = [
     href: "/tools/tianyancha",
   },
   {
-    id: "qualityCheck",
-    name: "质检结果查询",
-    description: "查询质检审核结果数据",
-    href: "/tools/quality-check",
-  },
-  {
     id: "fileCompare",
     name: "文档对比工具",
     description: "Word 和 PDF 文档内容对比分析",
