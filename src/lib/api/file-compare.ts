@@ -8,7 +8,7 @@ const SERVICE_URL = process.env.NEXT_PUBLIC_FILE_COMPARE_SERVICE_URL || "";
 
 if (!SERVICE_URL) {
   console.warn(
-    "NEXT_PUBLIC_FILE_COMPARE_SERVICE_URL is not configured. File compare feature will not work."
+    "NEXT_PUBLIC_FILE_COMPARE_SERVICE_URL is not configured. File compare feature will not work.",
   );
 }
 
@@ -25,17 +25,17 @@ export const SCRIPT_DESCRIPTIONS: Record<
   { name: string; description: string }
 > = {
   default: {
-    name: "默认比较脚本（正文+表格）",
+    name: "compare_xinxi  个人信息对外提供授权书比对",
     description:
       "比较Word文档正文和表格内容与PDF文档的差异，生成详细的差异报告。",
   },
   script1: {
-    name: "风控专用脚本",
+    name: "compare_fengxian 风险告知书比对",
     description:
       "针对风控场景优化，专注于识别文档中的关键信息差异，忽略编号等无关内容。",
   },
   script2: {
-    name: "敏感信息检测脚本",
+    name: "compare_mingan 敏感个人信息授权书比对",
     description:
       "针对敏感信息检测优化，识别文档中的敏感内容差异，提供增强的隐私保护分析。",
   },
@@ -73,7 +73,7 @@ export interface CompareResponse {
 export class FileCompareApiError extends Error {
   constructor(
     message: string,
-    public detail?: unknown
+    public detail?: unknown,
   ) {
     super(message);
     this.name = "FileCompareApiError";
@@ -119,9 +119,7 @@ function parseProcessLogs(rawLogs: string[]): ProcessLog[] {
  * @returns Promise with download URL or error info
  * @throws FileCompareApiError on API errors
  */
-export async function compareDocuments(
-  params: CompareRequest
-): Promise<{
+export async function compareDocuments(params: CompareRequest): Promise<{
   success: boolean;
   downloadUrl?: string;
   filename?: string;
@@ -130,7 +128,7 @@ export async function compareDocuments(
 }> {
   if (!SERVICE_URL) {
     throw new FileCompareApiError(
-      "File compare service is not configured. Please set NEXT_PUBLIC_FILE_COMPARE_SERVICE_URL."
+      "File compare service is not configured. Please set NEXT_PUBLIC_FILE_COMPARE_SERVICE_URL.",
     );
   }
 
@@ -151,7 +149,7 @@ export async function compareDocuments(
   ];
   if (!validWordTypes.includes(word.type)) {
     throw new FileCompareApiError(
-      "Please upload a valid Word document (.doc or .docx)"
+      "Please upload a valid Word document (.doc or .docx)",
     );
   }
 
@@ -177,11 +175,16 @@ export async function compareDocuments(
     const contentType = response.headers.get("Content-Type") || "";
 
     // 如果返回的是文件流 (Excel)
-    if (contentType.includes("application/vnd.openxmlformats") || contentType.includes("application/octet-stream")) {
+    if (
+      contentType.includes("application/vnd.openxmlformats") ||
+      contentType.includes("application/octet-stream")
+    ) {
       // 直接返回文件流
       const blob = await response.blob();
       const downloadUrl = URL.createObjectURL(blob);
-      const filename = getFilenameFromResponse(response) || `对比结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const filename =
+        getFilenameFromResponse(response) ||
+        `对比结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
       return {
         success: true,
@@ -197,7 +200,9 @@ export async function compareDocuments(
       return {
         success: true,
         logs: parseProcessLogs(result.process_log || []),
-        downloadUrl: result.download_url ? `${SERVICE_URL}${result.download_url}` : undefined,
+        downloadUrl: result.download_url
+          ? `${SERVICE_URL}${result.download_url}`
+          : undefined,
       };
     } else {
       return {
@@ -225,7 +230,9 @@ function getFilenameFromResponse(response: Response): string | null {
 
   // 解析 Content-Disposition 头获取文件名
   // 格式: attachment; filename="文件名.xlsx"
-  const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+  const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+    contentDisposition,
+  );
   if (matches && matches[1]) {
     // 移除引号
     return matches[1].replace(/['"]/g, "");

@@ -4,13 +4,8 @@ import { logInfo, logError } from "@/lib/core/logger";
 /**
  * Z-Image service configuration
  */
-const ZIMAGE_BASE_URL = process.env.ZIMAGE_BASE_URL;
-
-if (!ZIMAGE_BASE_URL) {
-  throw new Error(
-    "ZIMAGE_BASE_URL environment variable is required. Please configure it in your .env file."
-  );
-}
+const ZIMAGE_BASE_URL =
+  process.env.ZIMAGE_BASE_URL || "http://10.162.5.211:9998/v1";
 const ZIMAGE_TIMEOUT = parseInt(
   process.env.ZIMAGE_TIMEOUT || "120000",
   10
