@@ -1,0 +1,163 @@
+{
+  "id": "2026-04-16-104633",
+  "generated_at": "2026-04-16T02:46:33.312952Z",
+  "language": "zh",
+  "pages": [
+    {
+      "slug": "1-xiang-mu-gai-shu",
+      "title": "项目概述",
+      "file": "1-xiang-mu-gai-shu.md",
+      "section": "快速入门",
+      "level": "beginner"
+    },
+    {
+      "slug": "2-kuai-su-kai-shi",
+      "title": "快速开始",
+      "file": "2-kuai-su-kai-shi.md",
+      "section": "快速入门",
+      "level": "beginner"
+    },
+    {
+      "slug": "3-ji-zhu-zhan-yu-mu-lu-jie-gou",
+      "title": "技术栈与目录结构",
+      "file": "3-ji-zhu-zhan-yu-mu-lu-jie-gou.md",
+      "section": "架构设计",
+      "level": "intermediate"
+    },
+    {
+      "slug": "4-bff-ren-zheng-mo-shi",
+      "title": "BFF 认证模式",
+      "file": "4-bff-ren-zheng-mo-shi.md",
+      "section": "架构设计",
+      "level": "intermediate"
+    },
+    {
+      "slug": "5-zuo-ye-guan-li-xi-tong",
+      "title": "作业管理系统",
+      "file": "5-zuo-ye-guan-li-xi-tong.md",
+      "section": "架构设计",
+      "group": "核心模块",
+      "level": "intermediate"
+    },
+    {
+      "slug": "6-liu-shi-xiang-ying-chu-li",
+      "title": "流式响应处理",
+      "file": "6-liu-shi-xiang-ying-chu-li.md",
+      "section": "架构设计",
+      "group": "核心模块",
+      "level": "advanced"
+    },
+    {
+      "slug": "7-better-auth-pei-zhi",
+      "title": "Better Auth 配置",
+      "file": "7-better-auth-pei-zhi.md",
+      "section": "认证系统",
+      "level": "intermediate"
+    },
+    {
+      "slug": "8-microsoft-entra-id-ji-cheng",
+      "title": "Microsoft Entra ID 集成",
+      "file": "8-microsoft-entra-id-ji-cheng.md",
+      "section": "认证系统",
+      "group": "OAuth 集成",
+      "level": "intermediate"
+    },
+    {
+      "slug": "9-adfs-ji-cheng",
+      "title": "ADFS 集成",
+      "file": "9-adfs-ji-cheng.md",
+      "section": "认证系统",
+      "group": "OAuth 集成",
+      "level": "advanced"
+    },
+    {
+      "slug": "10-shu-ju-ku-mo-shi-she-ji",
+      "title": "数据库模式设计",
+      "file": "10-shu-ju-ku-mo-shi-she-ji.md",
+      "section": "数据库与模式",
+      "level": "intermediate"
+    },
+    {
+      "slug": "11-shu-ju-ku-cao-zuo-zhi-nan",
+      "title": "数据库操作指南",
+      "file": "11-shu-ju-ku-cao-zuo-zhi-nan.md",
+      "section": "数据库与模式",
+      "level": "intermediate"
+    },
+    {
+      "slug": "12-rbac-quan-xian-mo-xing",
+      "title": "RBAC 权限模型",
+      "file": "12-rbac-quan-xian-mo-xing.md",
+      "section": "权限管理",
+      "level": "intermediate"
+    },
+    {
+      "slug": "13-gong-ju-fang-wen-kong-zhi",
+      "title": "工具访问控制",
+      "file": "13-gong-ju-fang-wen-kong-zhi.md",
+      "section": "权限管理",
+      "level": "intermediate"
+    },
+    {
+      "slug": "14-ppt-sheng-cheng-jie-kou",
+      "title": "PPT 生成接口",
+      "file": "14-ppt-sheng-cheng-jie-kou.md",
+      "section": "API 路由",
+      "group": "核心 API",
+      "level": "intermediate"
+    },
+    {
+      "slug": "15-ocr-shi-bie-jie-kou",
+      "title": "OCR 识别接口",
+      "file": "15-ocr-shi-bie-jie-kou.md",
+      "section": "API 路由",
+      "group": "核心 API",
+      "level": "intermediate"
+    },
+    {
+      "slug": "16-tian-yan-cha-qi-ye-cha-xun",
+      "title": "天眼查企业查询",
+      "file": "16-tian-yan-cha-qi-ye-cha-xun.md",
+      "section": "API 路由",
+      "group": "核心 API",
+      "level": "intermediate"
+    },
+    {
+      "slug": "17-open-webui-dai-li",
+      "title": "Open WebUI 代理",
+      "file": "17-open-webui-dai-li.md",
+      "section": "API 路由",
+      "group": "AI 集成",
+      "level": "advanced"
+    },
+    {
+      "slug": "18-liu-shi-liao-tian-chu-li",
+      "title": "流式聊天处理",
+      "file": "18-liu-shi-liao-tian-chu-li.md",
+      "section": "API 路由",
+      "group": "AI 集成",
+      "level": "advanced"
+    },
+    {
+      "slug": "19-ren-zheng-zu-jian",
+      "title": "认证组件",
+      "file": "19-ren-zheng-zu-jian.md",
+      "section": "前端组件",
+      "level": "intermediate"
+    },
+    {
+      "slug": "20-gong-zuo-tai-zu-jian",
+      "title": "工作台组件",
+      "file": "20-gong-zuo-tai-zu-jian.md",
+      "section": "前端组件",
+      "level": "intermediate"
+    },
+    {
+      "slug": "21-gong-ju-zu-jian",
+      "title": "工具组件",
+      "file": "21-gong-ju-zu-jian.md",
+      "section": "前端组件",
+      "level": "intermediate"
+    }
+  ]
+}

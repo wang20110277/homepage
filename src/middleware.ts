@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
     request.cookies.get("better-auth.session_token");
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ["/", "/unauthorized", "/api/auth"];
+  const publicPaths = ["/", "/login", "/unauthorized", "/api/auth"];
   const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith(path + "/"));
   const isApiRoute = pathname.startsWith("/api/");
 
