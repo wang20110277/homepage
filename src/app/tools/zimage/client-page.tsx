@@ -165,14 +165,14 @@ export default function ZImageClientPage() {
   return (
     <main className="flex min-h-screen flex-col pt-14">
       <section className="flex-1 overflow-hidden px-6 py-6 -mt-[3vh]">
-        <div className="mx-auto flex h-full max-w-6xl flex-col gap-5 overflow-hidden rounded-3xl bg-neutral-950/70 p-6 backdrop-blur">
+        <div className="mx-auto flex h-full max-w-6xl flex-col gap-5 overflow-hidden rounded-3xl dark:bg-neutral-950/70 bg-card p-6 backdrop-blur">
           {/* Header */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-neutral-900/60 to-transparent px-8 py-10 text-center shadow-2xl">
+          <div className="rounded-2xl border dark:border-white/10 border-border dark:bg-gradient-to-br dark:from-white/5 dark:via-neutral-900/60 bg-gradient-to-br from-background via-card to-transparent px-8 py-10 text-center shadow-2xl">
             <div className="mb-3 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-tool-cyan">
               <ImageIcon className="h-4 w-4" />
               <span>Z-Image</span>
             </div>
-            <h1 className="text-balance text-4xl font-bold tracking-tight text-white">AI 图像生成工具</h1>
+            <h1 className="text-balance text-4xl font-bold tracking-tight dark:text-white text-foreground">AI 图像生成工具</h1>
             <p className="mt-3 text-balance text-base text-muted-foreground">
               输入文字描述，AI 将根据您的描述生成高质量图像。支持多种尺寸和风格，让创意变为现实
             </p>

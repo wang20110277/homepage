@@ -61,6 +61,9 @@ next-env.d.ts
 # mcp config
 .mcp.json
 
+# omc config
+.omc/
+
 # temp notes
 functionList/
 
