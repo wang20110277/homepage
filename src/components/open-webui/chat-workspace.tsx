@@ -293,12 +293,12 @@ export function ChatWorkspace({ userName }: ChatWorkspaceProps) {
 
   return (
     <div className="flex h-full max-h-full flex-col rounded-2xl border border-white/10 bg-background/90 shadow-xl">
-      <div className="flex flex-wrap items-center gap-3 border-b border-white/5 px-5 py-3 flex-shrink-0">
-        <div className="flex flex-1 flex-col">
+      <div className="flex items-center gap-3 border-b border-white/5 px-5 py-3 flex-shrink-0">
+        <div className="flex flex-1 min-w-0 flex-col">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             对话
           </p>
-          <p className="text-lg font-semibold">
+          <p className="text-lg font-semibold truncate" title={chatQuery.data?.title || "未命名对话"}>
             {chatQuery.data?.title || "未命名对话"}
           </p>
         </div>
