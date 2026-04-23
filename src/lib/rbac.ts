@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 
-export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
+export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage" | "voiceprintCompare";
 
 const TOOL_PERMISSION_MAP: Record<
   ToolId,
@@ -14,6 +14,7 @@ const TOOL_PERMISSION_MAP: Record<
   qualityCheck: { resource: "qualityCheck", action: "read" },
   fileCompare: { resource: "fileCompare", action: "read" },
   zimage: { resource: "zimage", action: "read" },
+  voiceprintCompare: { resource: "voiceprintCompare", action: "read" },
 };
 
 interface AccessResult {

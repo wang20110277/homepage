@@ -46,6 +46,12 @@ const ALL_TOOLS: Omit<ToolStatus, "access">[] = [
     description: "输入文字描述生成高质量图像",
     href: "/tools/zimage",
   },
+  {
+    id: "voiceprintCompare",
+    name: "声纹比对",
+    description: "上传音频文件进行声纹比对分析",
+    href: "/tools/voiceprint-compare",
+  },
 ];
 
 export function GlobalAppsButton() {

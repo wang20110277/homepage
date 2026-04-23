@@ -43,6 +43,13 @@
       "when": 1772508511897,
       "tag": "0005_naive_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776933600000,
+      "tag": "0006_add_voiceprint_compare",
+      "breakpoints": true
     }
   ]
 }

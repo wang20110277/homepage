@@ -51,6 +51,7 @@
   --tool-orange: hsl(35, 70%, 65%);
   --tool-pink: hsl(340, 65%, 70%);
   --tool-cyan: hsl(185, 60%, 60%);
+  --tool-amber: hsl(38, 80%, 55%);
   --sidebar: hsl(50, 15%, 92%);
   --sidebar-foreground: hsl(0, 0%, 22%);
   --sidebar-primary: hsl(347, 60%, 55%);
@@ -117,6 +118,7 @@
   --tool-orange: hsl(35, 65%, 68%);
   --tool-pink: hsl(340, 60%, 72%);
   --tool-cyan: hsl(185, 55%, 65%);
+  --tool-amber: hsl(38, 75%, 60%);
   --sidebar: hsl(30, 10%, 15%);
   --sidebar-foreground: hsl(50, 10%, 95%);
   --sidebar-primary: hsl(350, 70%, 60%);
@@ -181,6 +183,7 @@
   --color-tool-orange: var(--tool-orange);
   --color-tool-pink: var(--tool-pink);
   --color-tool-cyan: var(--tool-cyan);
+  --color-tool-amber: var(--tool-amber);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);

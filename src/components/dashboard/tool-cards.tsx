@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Presentation, ScanText, Building2, ArrowRight, GitCompare, ImageIcon } from "lucide-react";
+import { Presentation, ScanText, Building2, ArrowRight, GitCompare, ImageIcon, AudioWaveform } from "lucide-react";
 
 const tools = [
   {
@@ -65,6 +65,18 @@ const tools = [
     gradientFrom: "from-tool-cyan/20",
     gradientTo: "to-tool-cyan/5",
     borderGlow: "group-hover:shadow-tool-cyan/50",
+  },
+  {
+    id: "voiceprint-compare",
+    title: "声纹比对",
+    description: "上传音频文件进行声纹比对分析，判断是否同一说话人",
+    icon: AudioWaveform,
+    href: "/tools/voiceprint-compare",
+    color: "text-tool-amber",
+    bgColor: "bg-tool-amber/10",
+    gradientFrom: "from-tool-amber/20",
+    gradientTo: "to-tool-amber/5",
+    borderGlow: "group-hover:shadow-tool-amber/50",
   },
 ];
 

@@ -40,8 +40,9 @@ export const tenants = pgTable("tenants", {
       qualityCheck: boolean;
       fileCompare: boolean;
       zimage: boolean;
+      voiceprintCompare: boolean;
     }>()
-    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true,"fileCompare":true,"zimage":true}'::jsonb`)
+    .default(sql`'{"ppt":true,"ocr":true,"tianyancha":true,"qualityCheck":true,"fileCompare":true,"zimage":true,"voiceprintCompare":true}'::jsonb`)
     .notNull(),
 });
 
