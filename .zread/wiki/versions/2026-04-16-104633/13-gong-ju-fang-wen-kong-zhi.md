@@ -1,11 +1,11 @@
-工具访问控制（Tool Access Control）是本平台权限管理体系的核心组成部分，实现了对六个业务工具（PPT 生成、OCR 识别、天眼查企业查询、质量检查、文档对比、AI 图像生成）的细粒度访问管理。该系统采用**双层验证架构**——租户级功能开关与用户角色权限的组合判断——在保证安全性的同时兼顾了灵活的企业级配置需求。
+工具访问控制（Tool Access Control）是本平台权限管理体系的核心组成部分，实现了对七个业务工具（PPT 生成、OCR 识别、天眼查企业查询、质量检查、文档对比、AI 图像生成、声纹比对）的细粒度访问管理。该系统采用**双层验证架构**——租户级功能开关与用户角色权限的组合判断——在保证安全性的同时兼顾了灵活的企业级配置需求。
 
 ## 核心类型定义
 
 工具访问控制系统的类型定义集中在 `src/lib/rbac.ts` 文件顶部，通过 `ToolId` 联合类型枚举了所有受控工具：
 
 ```typescript
-export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
+export type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage" | "voiceprintCompare";
 ```
 
 每个工具 ID 均与数据库中的 `permissions` 表资源字段一一对应。`TOOL_PERMISSION_MAP` 常量建立了工具 ID 到权限键（`resource:action` 格式）的映射关系，确保所有工具的访问检查使用统一的权限格式。
@@ -120,7 +120,8 @@ erDiagram
   "tianyancha": true,
   "qualityCheck": true,
   "fileCompare": true,
-  "zimage": true
+  "zimage": true,
+  "voiceprintCompare": true
 }
 ```
 
@@ -162,7 +163,7 @@ export default async function PPTGeneratorPage() {
 }
 ```
 
-该模式在 Next.js App Router 的 Server Component 中以服务端身份执行，确保在页面组件渲染之前完成访问检查，未授权用户会被重定向至 `/unauthorized` 页面。所有六个工具页面（`ppt-generator`、`ocr`、`tianyancha`、`quality-check`、`file-compare`、`zimage`）均遵循此模式。
+该模式在 Next.js App Router 的 Server Component 中以服务端身份执行，确保在页面组件渲染之前完成访问检查，未授权用户会被重定向至 `/unauthorized` 页面。所有七个工具页面（`ppt-generator`、`ocr`、`tianyancha`、`quality-check`、`file-compare`、`zimage`、`voiceprint-compare`）均遵循此模式。
 
 Sources: [src/app/tools/ppt-generator/page.tsx#L1-L28](src/app/tools/ppt-generator/page.tsx#L1-L28)
 
@@ -207,6 +208,7 @@ const ALL_TOOLS: Omit<ToolStatus, "access">[] = [
   { id: "tianyancha", name: "天眼查", href: "/tools/tianyancha" },
   { id: "fileCompare", name: "文档对比工具", href: "/tools/file-compare" },
   { id: "zimage", name: "AI 图像生成", href: "/tools/zimage" },
+  { id: "voiceprintCompare", name: "声纹比对", href: "/tools/voiceprint-compare" },
 ];
 ```
 
@@ -245,7 +247,7 @@ Sources: [src/lib/rbac.ts#L184-L205](src/lib/rbac.ts#L184-L205)
 | `ppt_admin` | PPT Administrator | PPT 管理 | 仅 PPT 相关 |
 | `viewer` | Viewer | 只读访问 | 仅 dashboard 和各工具的 read 权限 |
 
-默认权限中 **不包含 `fileCompare` 和 `zimage`** 的权限条目，这意味着这两个工具的访问完全依赖租户级功能开关（默认开启）。
+默认权限中 **不包含 `fileCompare`、`zimage` 和 `voiceprintCompare`** 的权限条目，这意味着这三个工具的访问完全依赖租户级功能开关（默认开启）。
 
 Sources: [src/lib/rbac-init.ts#L18-L38](src/lib/rbac-init.ts#L18-L38)
 Sources: [src/lib/rbac-init.ts#L40-L62](src/lib/rbac-init.ts#L40-L62)

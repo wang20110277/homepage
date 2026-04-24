@@ -16,7 +16,7 @@ graph TB
         CBS[company-business-scope.tsx<br/>经营范围组件]
         FC["file-compare/<br/>标点纠错组件"]
     end
-    
+
     subgraph "工具页面 src/app/tools/"
         PPT[ppt-generator/<br/>PPT生成器]
         OCR[ocr/<br/>OCR识别]
@@ -24,9 +24,10 @@ graph TB
         QC[quality-check/<br/>质检审核]
         ZIMG[zimage/<br/>AI图像生成]
         FC_PAGE[file-compare/<br/>文件对比]
+        VP[voiceprint-compare/<br/>声纹比对]
         MP[my-presentations/<br/>我的演示文稿]
     end
-    
+
     FU --> PPT
     IU --> OCR
     CIC --> TY
@@ -455,6 +456,69 @@ Sources: [src/app/tools/zimage/client-page.tsx](file:///Users/lindaw/Documents/h
 页面使用 `react-markdown` 配合 `remark-gfm` 和 `rehype-sanitize` 插件渲染 Markdown 内容。纠错结果通过左右两栏对比展示，支持独立复制功能。
 
 Sources: [src/app/tools/file-compare/client-page.tsx](file:///Users/lindaw/Documents/homepage2/src/app/tools/file-compare/client-page.tsx#L1-L481)
+
+### 声纹比对 (voiceprint-compare)
+
+声纹比对工具提供音频文件的声纹相似度对比功能，支持验证两个音频是否来自同一人。
+
+**功能特性：**
+
+| 功能 | 说明 |
+|------|------|
+| 音频上传 | 支持上传两个音频文件进行对比 |
+| 格式支持 | .wav、.mp3 格式 |
+| 文件大小限制 | 最大 50MB |
+| 相似度计算 | 基于余弦相似度算法，返回 0-100% 的相似度 |
+| 结果判定 | 相似度 ≥85% 判定为高度相似，极可能是同一人 |
+
+**外部服务配置：**
+
+声纹比对服务地址由环境变量 `VOICEPRINT_SERVICE_URL` 控制，默认值为 `http://10.162.5.210:7862`。服务超时时间由 `VOICEPRINT_SERVICE_TIMEOUT` 控制，默认 60000 毫秒。
+
+**核心实现：**
+
+```typescript
+// 声纹比对结果类型
+interface VoiceprintCompareResult {
+  similarity: number;          // 余弦相似度 (0-1)
+  similarity_percent: number;  // 相似度百分比 (0-100)
+  message: string;             // 结果描述
+}
+
+// 服务调用
+const result = await voiceprintCompare({
+  audio1: file1,
+  audio2: file2,
+});
+```
+
+**音频处理参数：**
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| 采样率 | 16kHz | 音频自动重采样 |
+| 有效时长 | 3-20秒 | 最少3秒，最多取前20秒 |
+| 频率范围 | 200-3500Hz | 带通滤波处理 |
+| 声纹维度 | 192 | CAM++ 模型输出维度 |
+
+**相似度判定标准：**
+
+| 相似度范围 | 判定 |
+|-----------|------|
+| 0.85 - 1.00 | 高度相似，极可能是同一人 |
+| 0.70 - 0.85 | 相似，可能是同一人 |
+| 0.50 - 0.70 | 一般相似，需要进一步确认 |
+| 0.00 - 0.50 | 不相似，不太可能是同一人 |
+
+**错误处理：**
+
+工具实现了完善的错误处理机制，包括：
+- 文件格式验证（仅支持 .wav 和 .mp3）
+- 文件大小限制（50MB）
+- 服务超时处理（可配置超时时间）
+- 有效语音长度检查（最少需要3秒）
+
+Sources: [src/app/tools/voiceprint-compare/page.tsx](file:///Users/lindaw/Documents/homepage2/src/app/tools/voiceprint-compare/page.tsx#L1-L31) [src/lib/services/voiceprint-compare.ts](file:///Users/lindaw/Documents/homepage2/src/lib/services/voiceprint-compare.ts#L1-L222)
 
 ## 类型定义
 

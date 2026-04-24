@@ -21,6 +21,7 @@ Sources: [README.md](README.md#L1-L15), [package.json](package.json#L1-L30)
 | **质量检查** | 对文本内容进行智能质检和评分 | Inspection DB |
 | **文件对比** | 文本文件差异对比和可视化展示 | 本地服务 |
 | **Z-Image 生成** | 智能图片生成功能 | 自定义服务 |
+| **声纹比对** | 音频声纹相似度对比，支持身份验证场景 | 声纹服务 |
 
 每个功能模块都对应特定的 API 路由和数据模型，您可以在后续的详细文档中深入了解各模块的实现细节。
 
@@ -205,7 +206,7 @@ Sources: [src/lib/auth.ts](src/lib/auth.ts#L1-L50), [env.example](env.example#L1
 系统实现了基于功能标识的访问控制机制。您可以在 `src/lib/rbac.ts` 中找到详细的权限检查逻辑：
 
 ```typescript
-type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
+type ToolId = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage" | "voiceprintCompare";
 ```
 
 每个工具对应一个功能标识符，用户能否访问该工具取决于三个条件：用户账户是否激活、租户是否启用了该功能、以及用户是否拥有相应角色权限。这种三层检查机制既保证了灵活性，又确保了安全性。
