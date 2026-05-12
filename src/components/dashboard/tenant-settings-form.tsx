@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage";
+type ToolFeature = "ppt" | "ocr" | "tianyancha" | "qualityCheck" | "fileCompare" | "zimage" | "voiceprintCompare";
 
 const TOOL_DEFINITIONS: Array<{
   id: ToolFeature;
@@ -45,6 +45,11 @@ const TOOL_DEFINITIONS: Array<{
     name: "AI Image Generator",
     description: "Enable AI-powered image generation from text prompts.",
   },
+  {
+    id: "voiceprintCompare",
+    name: "Voiceprint Comparison",
+    description: "Enable voice biometric comparison and similarity analysis.",
+  },
 ];
 
 function normalizeFeatures(
@@ -57,6 +62,7 @@ function normalizeFeatures(
     qualityCheck: Boolean(input?.qualityCheck ?? true),
     fileCompare: Boolean(input?.fileCompare ?? true),
     zimage: Boolean(input?.zimage ?? true),
+    voiceprintCompare: Boolean(input?.voiceprintCompare ?? true),
   };
 }
 
